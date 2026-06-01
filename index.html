@@ -584,15 +584,22 @@ body.staff-mode .admin-only{display:none!important;}
           <div class="scard"><div class="sct">Rename Departments</div><div id="rename-wrap"></div></div>
           <div class="scard">
             <div class="sct">Branding</div>
-            <div class="sf"><label>Company Name</label><input type="text" id="company-inp" value="ThreadOps Apparel Co." oninput="updateBrand(this.value)"></div>
-            <div class="sf">
+            <div style="display:flex;gap:6px;margin-bottom:12px">
+              <button class="tab-btn active" id="brand-name-tab" onclick="setBrandMode('name')">Company Name</button>
+              <button class="tab-btn" id="brand-logo-tab" onclick="setBrandMode('logo')">Logo</button>
+            </div>
+            <div class="sf" id="brand-name-section">
+              <label>Company Name</label>
+              <input type="text" id="company-inp" value="ThreadOps Apparel Co." oninput="updateBrand(this.value)">
+            </div>
+            <div class="sf" id="brand-logo-section" style="display:none">
               <label>Company Logo</label>
               <div class="logo-area" onclick="document.getElementById('logo-file').click()">
                 <img id="logo-prev" src="" style="max-height:48px;max-width:120px;margin:0 auto 8px;display:none;">
                 <div id="logo-hint"><i class="ti ti-upload" style="font-size:22px;color:var(--muted)"></i><div style="font-size:11px;color:var(--muted);margin-top:5px">Click to upload logo</div></div>
                 <input type="file" id="logo-file" accept="image/*" onchange="handleLogo(event)">
               </div>
-              <button class="btn btn-o" style="margin-top:7px;font-size:11px" onclick="removeLogo()"><i class="ti ti-trash"></i> Remove</button>
+              <button class="btn btn-o" style="margin-top:7px;font-size:11px" onclick="removeLogo()"><i class="ti ti-trash"></i> Remove Logo</button>
             </div>
             <div class="sf"><label>Admin Email</label><input type="email" value="admin@threadops.ph"></div>
           </div>
@@ -649,37 +656,8 @@ body.staff-mode .admin-only{display:none!important;}
     <div class="inv-modal-sub" id="inv-modal-sub">Fabrics, materials, consumables</div>
     <button class="inv-modal-close" onclick="closeModal('inv-modal')">×</button>
     <input type="hidden" id="inv-editing-id">
-    <div class="mf"><label>Item Name</label><input type="text" id="inv-name" placeholder="e.g. Sublimation Polyester"></div>
-    <div class="mf-row">
-      <div class="mf"><label>Category</label>
-        <select id="inv-cat">
-          <option>Fabric</option><option>Lining</option><option>Thread</option><option>Elastic</option>
-          <option>Sublimation Ink</option><option>Buttons / Zippers</option><option>Packaging</option><option>Other</option>
-        </select>
-      </div>
-      <div class="mf"><label>Unit</label>
-        <select id="inv-unit">
-          <option>meters</option><option>yards</option><option>pcs</option><option>cones</option>
-          <option>sets</option><option>rolls</option><option>kg</option><option>liters</option>
-        </select>
-      </div>
-    </div>
-    <div class="mf-row">
-      <div class="mf"><label>Current Stock</label><input type="number" id="inv-stock" min="0" placeholder="0"></div>
-      <div class="mf"><label>Minimum Stock</label><input type="number" id="inv-min" min="0" placeholder="0"></div>
-    </div>
-    <div class="mf"><label>Supplier / Source</label><input type="text" id="inv-supplier" placeholder="Supplier name or store"></div>
-    <div class="mf"><label>Department Used In</label>
-      <select id="inv-dept">
-        <option>All Departments</option><option>Jersey Sublimation</option><option>Custom Dress</option><option>Merchandise</option><option>Scrub Suits</option>
-      </select>
-    </div>
-    <div class="mf"><label>Notes</label><textarea id="inv-notes" placeholder="Any additional details..." style="min-height:50px;font-family:var(--fu);font-size:13px;text-transform:none;letter-spacing:0;font-weight:400"></textarea></div>
-    <div style="display:flex;gap:8px;align-items:center;margin-top:1rem;padding-top:1rem;border-top:.5px solid var(--border)">
-      <button class="btn btn-o" id="inv-delete-btn" style="display:none;color:#E24B4A;border-color:#E24B4A;margin-right:auto" onclick="deleteInvItem()"><i class="ti ti-trash"></i> Delete</button>
-      <button class="btn btn-o" onclick="closeModal('inv-modal')">Cancel</button>
-      <button class="btn btn-p" id="inv-save-btn" onclick="saveInvItem()">Add Item</button>
-    </div>
+    <div id="inv-modal-content"></div>
+    <div id="inv-modal-footer" style="display:flex;gap:8px;align-items:center;margin-top:1rem;padding-top:1rem;border-top:.5px solid var(--border)"></div>
   </div>
 </div>
 
@@ -930,13 +908,14 @@ function projGridAllHTML(list,dept){
 
 function projListAllHTML(list,dept){
   const order=['In Queue','On-going','Finishing','Packed'];
-  let html='';
   const isCustomer=dept==='dress'||dept==='scrub';
+  let rows='',hasAny=false;
   order.forEach(status=>{
     const grp=list.filter(p=>p.status===status);
     if(!grp.length)return;
-    html+=`<div style="padding:6px 12px;background:var(--bg);font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;display:flex;align-items:center;gap:8px"><span class="jst ${stColor(status)}" style="font-size:10px">${status}</span></div>`;
-    const rows=grp.map(p=>`<tr data-id="${p.id}">
+    hasAny=true;
+    rows+=`<tr><td colspan="6" style="padding:5px 12px;background:var(--bg);border-top:.5px solid var(--border)"><span class="jst ${stColor(status)}" style="font-size:10px">${status}</span></td></tr>`;
+    rows+=grp.map(p=>`<tr data-id="${p.id}">
       <td><div class="proj-list-svg">${getSvg(dept,p.colors,36,p.textVal,p.fontSize)}</div></td>
       <td><strong>${p.name}</strong><div style="font-size:10px;color:var(--muted)">${p.notes||''}</div></td>
       <td><span class="jst ${stColor(p.status)}">${p.status}</span></td>
@@ -944,9 +923,9 @@ function projListAllHTML(list,dept){
       <td>₱${(p.total||0).toLocaleString()}</td>
       <td>₱${Math.max(0,(p.total||0)-(p.dp||0)).toLocaleString()}</td>
     </tr>`).join('');
-    html+=`<table><thead><tr><th></th><th>${isCustomer?'Customer':'Team'}</th><th>Status</th><th>Date Completed</th><th>Total</th><th>Balance</th></tr></thead><tbody>${rows}</tbody></table>`;
   });
-  return html||'<div style="padding:1.5rem;text-align:center;font-size:13px;color:var(--muted)">No projects</div>';
+  if(!hasAny)return'<div style="padding:1.5rem;text-align:center;font-size:13px;color:var(--muted)">No projects</div>';
+  return`<table><thead><tr><th></th><th>${isCustomer?'Customer':'Team'}</th><th>Status</th><th>Date Completed</th><th>Total</th><th>Balance</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 
@@ -1002,15 +981,14 @@ function renderApparelPreview(){
       }
     } else {
       if(apparelTab==='all'){
-        let thtml='';
+        let trows='';
         statusOrder.forEach(status=>{
           const grp=list.filter(p=>p.status===status);
           if(!grp.length)return;
-          thtml+=`<div style="padding:6px 12px;background:var(--bg);font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;display:flex;align-items:center;gap:8px"><span class="jst ${stColor(status)}" style="font-size:10px">${status}</span></div>`;
-          const rows=grp.map(p=>`<tr data-id="${p.id}" data-dept="${dept}"><td><div class="proj-list-svg">${getSvg(dept,p.colors,36,p.textVal,p.fontSize)}</div></td><td><strong>${p.name}</strong><div style="font-size:10px;color:var(--muted)">${p.notes||''}</div></td><td><span class="jst ${stColor(p.status)}">${p.status}</span></td><td>${p.status==='Packed'?(p.dateEnd||'—'):'—'}</td><td>₱${(p.total||0).toLocaleString()}</td><td>₱${Math.max(0,(p.total||0)-(p.dp||0)).toLocaleString()}</td></tr>`).join('');
-          thtml+=`<table><thead><tr><th></th><th>${isCustomer?'Customer':'Team'}</th><th>Status</th><th>Date Completed</th><th>Total</th><th>Balance</th></tr></thead><tbody>${rows}</tbody></table>`;
+          trows+=`<tr><td colspan="6" style="padding:5px 12px;background:var(--bg);border-top:.5px solid var(--border)"><span class="jst ${stColor(status)}" style="font-size:10px">${status}</span></td></tr>`;
+          trows+=grp.map(p=>`<tr data-id="${p.id}" data-dept="${dept}"><td><div class="proj-list-svg">${getSvg(dept,p.colors,36,p.textVal,p.fontSize)}</div></td><td><strong>${p.name}</strong><div style="font-size:10px;color:var(--muted)">${p.notes||''}</div></td><td><span class="jst ${stColor(p.status)}">${p.status}</span></td><td>${p.status==='Packed'?(p.dateEnd||'—'):'—'}</td><td>₱${(p.total||0).toLocaleString()}</td><td>₱${Math.max(0,(p.total||0)-(p.dp||0)).toLocaleString()}</td></tr>`).join('');
         });
-        html+=`<div class="proj-list ap-dept-list" data-dept="${dept}">${thtml}</div>`;
+        html+=`<div class="proj-list ap-dept-list" data-dept="${dept}"><table><thead><tr><th></th><th>${isCustomer?'Customer':'Team'}</th><th>Status</th><th>Date Completed</th><th>Total</th><th>Balance</th></tr></thead><tbody>${trows}</tbody></table></div>`;
       } else {
         const rows=list.map(p=>`<tr data-id="${p.id}" data-dept="${dept}"><td><div class="proj-list-svg">${getSvg(dept,p.colors,36,p.textVal,p.fontSize)}</div></td><td><strong>${p.name}</strong><div style="font-size:10px;color:var(--muted)">${p.notes||''}</div></td><td><span class="jst ${stColor(p.status)}">${p.status}</span></td><td>${p.status==='Packed'?(p.dateEnd||'—'):'—'}</td><td>₱${(p.total||0).toLocaleString()}</td><td>₱${Math.max(0,(p.total||0)-(p.dp||0)).toLocaleString()}</td></tr>`).join('');
         html+=`<div class="proj-list ap-dept-list" data-dept="${dept}"><table><thead><tr><th></th><th>${isCustomer?'Customer':'Team'}</th><th>Status</th><th>Date Completed</th><th>Total</th><th>Balance</th></tr></thead><tbody>${rows}</tbody></table></div>`;
@@ -1272,30 +1250,61 @@ function renderFieldsRight(dept,cfg,proj,mode){
 }
 
 // ══ INVENTORY ══
+const INV_FORM_HTML=`
+  <div class="mf"><label>Item Name</label><input type="text" id="inv-name" placeholder="e.g. Sublimation Polyester"></div>
+  <div class="mf-row">
+    <div class="mf"><label>Category</label><select id="inv-cat"><option>Fabric</option><option>Lining</option><option>Thread</option><option>Elastic</option><option>Sublimation Ink</option><option>Buttons / Zippers</option><option>Packaging</option><option>Other</option></select></div>
+    <div class="mf"><label>Unit</label><select id="inv-unit"><option>meters</option><option>yards</option><option>pcs</option><option>cones</option><option>sets</option><option>rolls</option><option>kg</option><option>liters</option></select></div>
+  </div>
+  <div class="mf-row">
+    <div class="mf"><label>Current Stock</label><input type="number" id="inv-stock" min="0" placeholder="0"></div>
+    <div class="mf"><label>Minimum Stock</label><input type="number" id="inv-min" min="0" placeholder="0"></div>
+  </div>
+  <div class="mf"><label>Supplier / Source</label><input type="text" id="inv-supplier" placeholder="Supplier name or store"></div>
+  <div class="mf"><label>Department Used In</label><select id="inv-dept"><option>All Departments</option><option>Jersey Sublimation</option><option>Custom Dress</option><option>Merchandise</option><option>Scrub Suits</option></select></div>
+  <div class="mf"><label>Notes</label><textarea id="inv-notes" placeholder="Any additional details..." style="min-height:50px;font-family:var(--fu);font-size:13px;text-transform:none;letter-spacing:0;font-weight:400"></textarea></div>`;
 function openInvModal(id){
-  const editId=id||'';
-  document.getElementById('inv-editing-id').value=editId;
-  const title=document.getElementById('inv-modal-title');
-  const sub=document.getElementById('inv-modal-sub');
-  const btn=document.getElementById('inv-save-btn');
-  const del=document.getElementById('inv-delete-btn');
-  if(editId){
-    const item=inventoryItems.find(i=>i.id===editId);if(!item)return;
-    title.textContent='Edit Inventory Item';sub.textContent=item.name;btn.textContent='Save Changes';del.style.display='';
-    document.getElementById('inv-name').value=item.name;
-    document.getElementById('inv-cat').value=item.category;
-    document.getElementById('inv-unit').value=item.unit;
-    document.getElementById('inv-stock').value=item.stock;
-    document.getElementById('inv-min').value=item.min_stock;
-    document.getElementById('inv-supplier').value=item.supplier||'';
-    document.getElementById('inv-dept').value=item.dept||'All Departments';
-    document.getElementById('inv-notes').value=item.notes||'';
+  const item=id?inventoryItems.find(i=>i.id===id):null;
+  document.getElementById('inv-editing-id').value=id||'';
+  if(id&&item){
+    document.getElementById('inv-modal-title').textContent=item.name;
+    document.getElementById('inv-modal-sub').textContent=item.category+' · '+item.dept;
+    // VIEW mode
+    document.getElementById('inv-modal-content').innerHTML=`
+      <div class="view-row"><label>Category</label><div class="vv">${item.category}</div></div>
+      <div class="view-row"><label>Unit</label><div class="vv">${item.unit}</div></div>
+      <div class="view-row"><label>Current Stock</label><div class="vv">${item.stock} ${item.unit}</div></div>
+      <div class="view-row"><label>Minimum Stock</label><div class="vv">${item.min_stock} ${item.unit}</div></div>
+      <div class="view-row"><label>Supplier</label><div class="vv">${item.supplier||'—'}</div></div>
+      <div class="view-row"><label>Department</label><div class="vv">${item.dept||'—'}</div></div>
+      <div class="view-row"><label>Notes</label><div class="vv">${item.notes||'—'}</div></div>`;
+    document.getElementById('inv-modal-footer').innerHTML=
+      (currentRole==='admin'?`<button class="btn btn-o" style="color:#E24B4A;border-color:#E24B4A;margin-right:auto" onclick="deleteInvItem()"><i class="ti ti-trash"></i> Delete</button>`:'')
+      +`<button class="btn btn-o" onclick="closeModal('inv-modal')">Close</button>`
+      +(currentRole==='admin'?`<button class="btn btn-p" onclick="switchToInvEdit()"><i class="ti ti-edit"></i> Edit</button>`:'');
   }else{
-    title.textContent='Add Inventory Item';sub.textContent='Fabrics, materials, consumables';btn.textContent='Add Item';del.style.display='none';
-    ['inv-name','inv-stock','inv-min','inv-supplier','inv-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-    document.getElementById('inv-cat').value='Fabric';document.getElementById('inv-unit').value='meters';
+    document.getElementById('inv-modal-title').textContent='Add Inventory Item';
+    document.getElementById('inv-modal-sub').textContent='Fabrics, materials, consumables';
+    document.getElementById('inv-modal-content').innerHTML=INV_FORM_HTML;
+    document.getElementById('inv-modal-footer').innerHTML=`<button class="btn btn-o" onclick="closeModal('inv-modal')">Cancel</button><button class="btn btn-p" onclick="saveInvItem()">Add Item</button>`;
   }
   document.getElementById('inv-modal').classList.add('open');
+}
+function switchToInvEdit(){
+  const id=document.getElementById('inv-editing-id').value;
+  const item=inventoryItems.find(i=>i.id===id);if(!item)return;
+  document.getElementById('inv-modal-title').textContent='Edit Inventory Item';
+  document.getElementById('inv-modal-sub').textContent=item.name;
+  document.getElementById('inv-modal-content').innerHTML=INV_FORM_HTML;
+  document.getElementById('inv-name').value=item.name;
+  document.getElementById('inv-cat').value=item.category;
+  document.getElementById('inv-unit').value=item.unit;
+  document.getElementById('inv-stock').value=item.stock;
+  document.getElementById('inv-min').value=item.min_stock;
+  document.getElementById('inv-supplier').value=item.supplier||'';
+  document.getElementById('inv-dept').value=item.dept||'All Departments';
+  document.getElementById('inv-notes').value=item.notes||'';
+  document.getElementById('inv-modal-footer').innerHTML=`<button class="btn btn-o" onclick="closeModal('inv-modal')">Cancel</button><button class="btn btn-p" onclick="saveInvItem()">Save Changes</button>`;
 }
 async function saveInvItem(){
   const name=document.getElementById('inv-name').value.trim();
@@ -1321,23 +1330,62 @@ async function deleteInvItem(){
 }
 
 // ══ SETTINGS ══
+let deptColors=['#E85D26','#9B59B6','#F0A500','#2E8B57'];
 function buildSettings(){
   const wrap=document.getElementById('rename-wrap');if(!wrap||wrap.children.length)return;
-  const depts=[{cls:'dl-0',color:'#E85D26'},{cls:'dl-1',color:'#9B59B6'},{cls:'dl-2',color:'#F0A500'},{cls:'dl-3',color:'#2E8B57'}];
-  depts.forEach((d,i)=>{
-    const el=document.querySelector('.'+d.cls);const name=el?el.textContent:'Dept '+(i+1);
+  const deptKeys=['jersey','dress','merch','scrub'];
+  deptColors.forEach((color,i)=>{
+    const el=document.querySelector('.dl-'+i);const name=el?el.textContent:'Dept '+(i+1);
     const div=document.createElement('div');div.className='sf';
-    div.innerHTML=`<label>Department ${i+1}</label><div class="rin"><input type="text" value="${name}" oninput="renameDept(${i},this.value)"><span style="width:14px;height:14px;border-radius:50%;background:${d.color};border:2px solid #fff;box-shadow:0 0 0 1px #ccc;cursor:pointer;flex-shrink:0" onclick="cycleDot(${i},this)"></span></div>`;
+    div.innerHTML=`<label>Department ${i+1}</label><div class="rin"><input type="text" value="${name}" oninput="renameDept(${i},this.value)"><input type="color" value="${color}" title="Pick color" style="width:22px;height:22px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #ccc;cursor:pointer;padding:0;flex-shrink:0;background:none" oninput="changeDeptColor(${i},this.value)"></div>`;
     wrap.appendChild(div);
   });
   buildThemeSwatches();
 }
-const DOT_CLR=['#E85D26','#9B59B6','#F0A500','#2E8B57','#1A6FA8','#E83232','#111111'];
-function cycleDot(idx,el){const cur=DOT_CLR.indexOf(el.style.background)||0;el.style.background=DOT_CLR[(cur+1)%DOT_CLR.length];}
+function changeDeptColor(idx,color){
+  deptColors[idx]=color;
+  const deptKey=['jersey','dress','merch','scrub'][idx];
+  DEPT_CFG[deptKey].color=color;
+  document.querySelectorAll('.sidebar .ddot')[idx].style.background=color;
+  const dashDots=document.querySelectorAll('.dg .ddot');if(dashDots[idx])dashDots[idx].style.background=color;
+  const dashPfs=document.querySelectorAll('.dg .pf');if(dashPfs[idx])dashPfs[idx].style.background=color;
+  renderApparelPreview();
+}
 function renameDept(idx,val){document.querySelectorAll('.dl-'+idx).forEach(e=>e.textContent=val);}
-function updateBrand(val){document.getElementById('brand-name').innerHTML=val||'THREAD<span style="color:var(--accent)">OPS</span>';}
-function handleLogo(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{document.getElementById('logo-img').src=ev.target.result;document.getElementById('logo-img').style.display='block';document.getElementById('brand-name').style.display='none';document.getElementById('logo-prev').src=ev.target.result;document.getElementById('logo-prev').style.display='block';document.getElementById('logo-hint').style.display='none';showToast('Logo uploaded');};r.readAsDataURL(f);}
-function removeLogo(){document.getElementById('logo-img').style.display='none';document.getElementById('brand-name').style.display='block';document.getElementById('logo-prev').style.display='none';document.getElementById('logo-hint').style.display='block';showToast('Logo removed');}
+// ── Branding ──
+function setBrandMode(mode){
+  const nameTab=document.getElementById('brand-name-tab'),logoTab=document.getElementById('brand-logo-tab');
+  const nameSection=document.getElementById('brand-name-section'),logoSection=document.getElementById('brand-logo-section');
+  if(mode==='name'){
+    nameTab.classList.add('active');logoTab.classList.remove('active');
+    nameSection.style.display='';logoSection.style.display='none';
+    document.getElementById('logo-img').style.display='none';
+    document.getElementById('brand-name').style.display='';
+  }else{
+    logoTab.classList.add('active');nameTab.classList.remove('active');
+    logoSection.style.display='';nameSection.style.display='none';
+  }
+}
+function updateBrand(val){
+  document.getElementById('brand-name').innerHTML=val||'THREAD<span style="color:var(--accent)">OPS</span>';
+}
+function handleLogo(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    document.getElementById('logo-img').src=ev.target.result;document.getElementById('logo-img').style.display='block';
+    document.getElementById('brand-name').style.display='none';
+    document.getElementById('logo-prev').src=ev.target.result;document.getElementById('logo-prev').style.display='block';
+    document.getElementById('logo-hint').style.display='none';
+    showToast('Logo uploaded');
+  };r.readAsDataURL(f);
+}
+function removeLogo(){
+  document.getElementById('logo-img').style.display='none';document.getElementById('brand-name').style.display='';
+  document.getElementById('logo-prev').style.display='none';document.getElementById('logo-hint').style.display='';
+  document.getElementById('logo-file').value='';
+  showToast('Logo removed');
+}
 function buildThemeSwatches(){
   const ns=document.getElementById('nav-sw'),as=document.getElementById('acc-sw');if(!ns||as&&as.children.length)return;
   NAV_SWS.forEach(c=>{const s=document.createElement('span');s.className='tc';s.style.background=c;s.onclick=()=>{document.getElementById('nav-pk').value=c;updateThemePreview(c,null);};ns.appendChild(s);});
