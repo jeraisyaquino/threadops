@@ -747,17 +747,31 @@ function renderInventory(items){
 }
 async function loadAllData(){
   try{
-    const[{data:pr,error:pe},{data:cr,error:ce},{data:ir,error:ie}]=await Promise.all([
+    const[{data:pr,error:pe},{data:cr,error:ce},{data:ir,error:ie},{data:mr,error:me}]=await Promise.all([
       _sb.from('projects').select('*').order('created_at'),
       _sb.from('custom_presets').select('*').order('created_at'),
-      _sb.from('inventory').select('*').order('created_at')
+      _sb.from('inventory').select('*').order('created_at'),
+      _sb.from('messages').select('*').order('created_at')
     ]);
-    if(pe)throw pe;if(ce)throw ce;if(ie)throw ie;
+    if(pe)throw pe;if(ce)throw ce;if(ie)throw ie;if(me)throw me;
     projects={jersey:[],dress:[],merch:[],scrub:[]};
     (pr||[]).forEach(row=>{if(projects[row.dept])projects[row.dept].push(dbToProject(row));});
     customPresets={jersey:[],dress:[],merch:[],scrub:[]};
     (cr||[]).forEach(row=>{if(customPresets[row.dept])customPresets[row.dept].push({id:row.id,label:row.label,c:row.colors});});
     inventoryItems=ir||[];renderInventory(inventoryItems);
+    chatMessages=mr||[];
+    if(!_chatChannel){
+      _chatChannel=_sb.channel('public:messages')
+        .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},payload=>{
+          chatMessages.push(payload.new);
+          const chatActive=document.getElementById('screen-chat')?.classList.contains('active');
+          if(chatActive){renderChat();}
+          else if(payload.new.role!==currentRole){
+            const nav=document.getElementById('nav-chat');
+            if(nav&&!nav.querySelector('.nbadge'))nav.insertAdjacentHTML('beforeend','<span class="nbadge">!</span>');
+          }
+        }).subscribe();
+    }
   }catch(e){console.error(e);showToast('Could not load data');}
 }
 
@@ -780,7 +794,7 @@ const DEPT_CFG={
 
 let projects={jersey:[],dress:[],merch:[],scrub:[]};
 
-let dressStyleIdx=0,currentRole='admin',modalMode='add',modalDept='jersey',modalProjId=null,modalPalState={},customPresets={},inventoryItems=[];
+let dressStyleIdx=0,currentRole='admin',modalMode='add',modalDept='jersey',modalProjId=null,modalPalState={},customPresets={},inventoryItems=[],chatMessages=[],_chatChannel=null;
 const deptTabs={jersey:'all',dress:'all',merch:'all',scrub:'all'};
 const deptViews={jersey:'grid',dress:'grid',merch:'grid',scrub:'grid'};
 let apparelView='grid',apparelTab='all';
@@ -837,36 +851,46 @@ function showScreen(id,el){
 }
 
 // ══ CHAT ══
-let chatMessages=[
-  {role:'admin',text:'Morning team! Reminder: Warriors set deadline is June 12. Let\'s stay on track. 💪',time:'08:30 AM'},
-  {role:'staff',text:'Noted! We\'re currently at 60% on cutting. Should finish by EOD.',time:'08:35 AM'},
-  {role:'admin',text:'Good. Make sure sublimation colors match the approved palette — QC before packing.',time:'08:37 AM'},
-  {role:'staff',text:'Will do. Also, we\'re running low on Chiffon fabric for the Flores Wedding order.',time:'08:42 AM'},
-  {role:'admin',text:'I\'ll order from Fabric Lane today. Thanks for the heads up!',time:'08:44 AM'},
-];
+function fmtChatTime(ts){
+  const d=new Date(new Date(ts).toLocaleString('en-US',{timeZone:'Asia/Manila'}));
+  const h=d.getHours(),m=d.getMinutes(),ap=h>=12?'PM':'AM',h12=h%12||12;
+  return `${String(h12).padStart(2,'0')}:${String(m).padStart(2,'0')} ${ap}`;
+}
+function fmtChatDate(ts){
+  const d=new Date(new Date(ts).toLocaleString('en-US',{timeZone:'Asia/Manila'}));
+  const today=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Manila'}));
+  const yest=new Date(today);yest.setDate(today.getDate()-1);
+  if(d.toDateString()===today.toDateString())return'Today';
+  if(d.toDateString()===yest.toDateString())return'Yesterday';
+  return d.toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'});
+}
 function renderChat(){
   const cont=document.getElementById('chat-msgs');if(!cont)return;
-  let html=`<div class="chat-day">Today · ${new Date().toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'})}</div>`;
-  html+=chatMessages.map(m=>{
+  if(!chatMessages.length){
+    cont.innerHTML='<div style="text-align:center;color:var(--muted);padding:3rem 0;font-size:13px">No messages yet. Say hello! 👋</div>';
+    return;
+  }
+  let html='',lastDate='';
+  chatMessages.forEach(m=>{
+    const ts=m.created_at||new Date().toISOString();
+    const dl=fmtChatDate(ts);
+    if(dl!==lastDate){html+=`<div class="chat-day">${dl}</div>`;lastDate=dl;}
     const isOut=m.role===currentRole;
     const who=isOut?'You':(m.role==='admin'?'Admin':'Staff');
-    return`<div class="chat-msg ${isOut?'out':'in'}">
-      <div class="chat-bubble">${m.text.replace(/</g,'&lt;')}</div>
-      <div class="chat-meta">${who} · ${m.time}</div>
+    html+=`<div class="chat-msg ${isOut?'out':'in'}">
+      <div class="chat-bubble">${m.text.replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div>
+      <div class="chat-meta">${who} · ${fmtChatTime(ts)}</div>
     </div>`;
-  }).join('');
+  });
   cont.innerHTML=html;
   cont.scrollTop=cont.scrollHeight;
 }
-function sendChatMessage(){
+async function sendChatMessage(){
   const inp=document.getElementById('chat-inp');
   const text=inp.value.trim();if(!text)return;
-  const now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Manila'}));
-  const h=now.getHours(),mn=now.getMinutes(),ap=h>=12?'PM':'AM',h12=h%12||12;
-  const time=`${String(h12).padStart(2,'0')}:${String(mn).padStart(2,'0')} ${ap}`;
-  chatMessages.push({role:currentRole,text,time});
   inp.value='';inp.style.height='auto';
-  renderChat();
+  const{error}=await _sb.from('messages').insert({role:currentRole,text});
+  if(error)showToast('Send failed: '+error.message);
 }
 function chatKeydown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChatMessage();}}
 
