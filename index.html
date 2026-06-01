@@ -297,21 +297,39 @@ body{font-family:var(--fu);background:var(--bg);color:var(--text);min-height:100
 .inv-modal-close{position:absolute;top:12px;right:14px;background:none;border:none;cursor:pointer;font-size:22px;color:var(--muted);}
 
 /* ── CHAT ── */
-.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 52px - 5rem);min-height:360px;}
-.chat-msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:.75rem;}
-.chat-msg{display:flex;flex-direction:column;max-width:72%;}
+.chat-screen{display:flex;height:calc(100vh - 52px - 2.5rem);max-width:900px;background:var(--card);border-radius:var(--radius);border:.5px solid var(--border);overflow:hidden;}
+.chat-sidebar{width:220px;flex-shrink:0;border-right:.5px solid var(--border);display:flex;flex-direction:column;background:var(--bg);}
+.chat-sidebar-head{padding:14px 14px 8px;font-family:var(--fs);font-size:15px;font-weight:800;letter-spacing:.5px;color:var(--text);flex-shrink:0;}
+.chat-ch-list{flex:1;overflow-y:auto;padding:0 6px 6px;}
+.chat-ch{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:9px;cursor:pointer;transition:background .12s;}
+.chat-ch:hover{background:rgba(26,39,68,.07);}
+.chat-ch.active{background:var(--nav);}
+.chat-ch.active .chat-ch-name{color:#fff;}
+.chat-ch.active .chat-ch-preview{color:rgba(255,255,255,.55);}
+.chat-ch-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--fs);font-size:14px;font-weight:800;flex-shrink:0;}
+.chat-ch-body{flex:1;min-width:0;}
+.chat-ch-name{font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.chat-ch-preview{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
+.chat-ch-badge{background:var(--accent);color:#fff;font-size:10px;padding:1px 6px;border-radius:20px;flex-shrink:0;}
+.chat-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.chat-main-head{padding:11px 16px;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:10px;flex-shrink:0;background:var(--card);}
+.chat-main-title{font-family:var(--fs);font-size:16px;font-weight:700;letter-spacing:.3px;color:var(--text);}
+.chat-main-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.chat-msgs{flex:1;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px;background:#fafaf8;}
+.chat-msg{display:flex;flex-direction:column;max-width:68%;}
 .chat-msg.out{align-self:flex-end;align-items:flex-end;}
 .chat-msg.in{align-self:flex-start;align-items:flex-start;}
 .chat-bubble{padding:8px 13px;border-radius:16px;font-size:13px;line-height:1.5;word-break:break-word;}
 .chat-msg.out .chat-bubble{background:var(--accent);color:#fff;border-bottom-right-radius:4px;}
 .chat-msg.in .chat-bubble{background:var(--card);border:.5px solid var(--border);color:var(--text);border-bottom-left-radius:4px;}
 .chat-meta{font-size:10px;color:var(--muted);margin-top:3px;padding:0 4px;}
-.chat-day{text-align:center;font-size:10px;color:var(--muted);padding:6px 0;letter-spacing:.5px;}
-.chat-input-row{display:flex;gap:8px;align-items:flex-end;padding-top:12px;border-top:.5px solid var(--border);}
-.chat-input-row textarea{flex:1;padding:9px 13px;border:.5px solid var(--border);border-radius:12px;font-family:var(--fu);font-size:13px;color:var(--text);background:var(--card);outline:none;resize:none;min-height:40px;max-height:120px;line-height:1.45;}
+.chat-day{text-align:center;font-size:10px;color:var(--muted);padding:4px 0;letter-spacing:.5px;}
+.chat-input-row{display:flex;gap:8px;align-items:flex-end;padding:10px 14px;border-top:.5px solid var(--border);background:var(--card);flex-shrink:0;}
+.chat-input-row textarea{flex:1;padding:9px 13px;border:.5px solid var(--border);border-radius:12px;font-family:var(--fu);font-size:13px;color:var(--text);background:var(--bg);outline:none;resize:none;min-height:40px;max-height:120px;line-height:1.45;}
 .chat-input-row textarea:focus{border-color:var(--accent);background:#fff;}
 .chat-send{width:40px;height:40px;border-radius:12px;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;flex-shrink:0;transition:opacity .15s;}
 .chat-send:hover{opacity:.85;}
+@media(max-width:768px){.chat-sidebar{width:180px;}.chat-screen{height:calc(100vh - 52px - 2rem);}}
 /* ── TOAST ── */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--nav);color:#fff;font-size:12px;padding:7px 18px;border-radius:20px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999;white-space:nowrap;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
@@ -648,14 +666,18 @@ body.staff-mode .admin-only{display:none!important;}
 
       <!-- CHAT -->
       <div class="screen" id="screen-chat">
-        <div class="ph">
-          <div class="ph-left"><div class="pt">Team Chat</div><div class="ps">Internal team messaging</div></div>
-        </div>
-        <div class="chat-wrap">
-          <div class="chat-msgs" id="chat-msgs"></div>
-          <div class="chat-input-row">
-            <textarea id="chat-inp" placeholder="Type a message… (Enter to send, Shift+Enter for new line)" rows="1" onkeydown="chatKeydown(event)" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-            <button class="chat-send" onclick="sendChatMessage()" title="Send"><i class="ti ti-send"></i></button>
+        <div class="chat-screen">
+          <div class="chat-sidebar">
+            <div class="chat-sidebar-head">Channels</div>
+            <div class="chat-ch-list" id="chat-ch-list"></div>
+          </div>
+          <div class="chat-main">
+            <div class="chat-main-head" id="chat-main-head"></div>
+            <div class="chat-msgs" id="chat-msgs"></div>
+            <div class="chat-input-row">
+              <textarea id="chat-inp" placeholder="Type a message… (Enter ↵ to send)" rows="1" onkeydown="chatKeydown(event)" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+              <button class="chat-send" onclick="sendChatMessage()" title="Send"><i class="ti ti-send"></i></button>
+            </div>
           </div>
         </div>
       </div>
@@ -764,9 +786,13 @@ async function loadAllData(){
       _chatChannel=_sb.channel('public:messages')
         .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},payload=>{
           chatMessages.push(payload.new);
+          const ch=payload.new.channel||'general';
           const chatActive=document.getElementById('screen-chat')?.classList.contains('active');
-          if(chatActive){renderChat();}
-          else if(payload.new.role!==currentRole){
+          if(chatActive){
+            renderChannelList();
+            if(ch===activeChannel){renderChatHeader();renderChat();}
+            else{unreadCounts[ch]=(unreadCounts[ch]||0)+1;renderChannelList();}
+          } else if(payload.new.role!==currentRole){
             const nav=document.getElementById('nav-chat');
             if(nav&&!nav.querySelector('.nbadge'))nav.insertAdjacentHTML('beforeend','<span class="nbadge">!</span>');
           }
@@ -846,11 +872,24 @@ function showScreen(id,el){
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
   if(el)el.classList.add('active');
   if(id==='apparel')renderApparelPreview();
-  if(id==='chat'){renderChat();document.getElementById('nav-chat').querySelector('.nbadge')?.remove();}
+  if(id==='chat'){
+    renderChannelList();renderChatHeader();renderChat();
+    const b=document.getElementById('nav-chat').querySelector('.nbadge');if(b)b.remove();
+  }
   closeSidebar();
 }
 
 // ══ CHAT ══
+const CHANNELS=[
+  {key:'general', name:'General',            color:'#1A2744', ic:'G'},
+  {key:'jersey',  name:'Jersey Sublimation', color:'#E85D26', ic:'J'},
+  {key:'dress',   name:'Custom Dress',       color:'#9B59B6', ic:'D'},
+  {key:'merch',   name:'Merchandise',        color:'#F0A500', ic:'M'},
+  {key:'scrub',   name:'Scrub Suits',        color:'#2E8B57', ic:'S'},
+];
+let activeChannel='general';
+let unreadCounts={general:0,jersey:0,dress:0,merch:0,scrub:0};
+
 function fmtChatTime(ts){
   const d=new Date(new Date(ts).toLocaleString('en-US',{timeZone:'Asia/Manila'}));
   const h=d.getHours(),m=d.getMinutes(),ap=h>=12?'PM':'AM',h12=h%12||12;
@@ -864,14 +903,44 @@ function fmtChatDate(ts){
   if(d.toDateString()===yest.toDateString())return'Yesterday';
   return d.toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'});
 }
+function chMsgs(ch){return chatMessages.filter(m=>(m.channel||'general')===ch);}
+function renderChannelList(){
+  const el=document.getElementById('chat-ch-list');if(!el)return;
+  el.innerHTML=CHANNELS.map(ch=>{
+    const msgs=chMsgs(ch.key);
+    const last=msgs[msgs.length-1];
+    const preview=last?(last.role===currentRole?'You: ':'')+last.text.replace(/\n/g,' ').slice(0,38):'No messages yet';
+    const ub=unreadCounts[ch.key]||0;
+    const fg=ch.color==='#F0A500'?'#7A5A00':'#fff';
+    return`<div class="chat-ch ${activeChannel===ch.key?'active':''}" onclick="setActiveChannel('${ch.key}')">
+      <div class="chat-ch-icon" style="background:${ch.color};color:${fg}">${ch.ic}</div>
+      <div class="chat-ch-body">
+        <div class="chat-ch-name">${ch.name}</div>
+        <div class="chat-ch-preview">${preview}</div>
+      </div>
+      ${ub?`<span class="chat-ch-badge">${ub}</span>`:''}
+    </div>`;
+  }).join('');
+}
+function renderChatHeader(){
+  const el=document.getElementById('chat-main-head');if(!el)return;
+  const ch=CHANNELS.find(c=>c.key===activeChannel);if(!ch)return;
+  const fg=ch.color==='#F0A500'?'#7A5A00':'#fff';
+  const count=chMsgs(ch.key).length;
+  el.innerHTML=`<div class="chat-ch-icon" style="background:${ch.color};color:${fg};width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--fs);font-size:14px;font-weight:800;flex-shrink:0">${ch.ic}</div>
+    <div><div class="chat-main-title">${ch.name}</div><div class="chat-main-sub">${count} message${count!==1?'s':''}</div></div>`;
+}
+function setActiveChannel(ch){
+  activeChannel=ch;unreadCounts[ch]=0;
+  renderChannelList();renderChatHeader();renderChat();
+  setTimeout(()=>document.getElementById('chat-inp')?.focus(),50);
+}
 function renderChat(){
   const cont=document.getElementById('chat-msgs');if(!cont)return;
-  if(!chatMessages.length){
-    cont.innerHTML='<div style="text-align:center;color:var(--muted);padding:3rem 0;font-size:13px">No messages yet. Say hello! 👋</div>';
-    return;
-  }
+  const msgs=chMsgs(activeChannel);
+  if(!msgs.length){cont.innerHTML='<div style="text-align:center;color:var(--muted);padding:3rem 0;font-size:13px">No messages yet. Start the conversation! 💬</div>';return;}
   let html='',lastDate='';
-  chatMessages.forEach(m=>{
+  msgs.forEach(m=>{
     const ts=m.created_at||new Date().toISOString();
     const dl=fmtChatDate(ts);
     if(dl!==lastDate){html+=`<div class="chat-day">${dl}</div>`;lastDate=dl;}
@@ -889,7 +958,7 @@ async function sendChatMessage(){
   const inp=document.getElementById('chat-inp');
   const text=inp.value.trim();if(!text)return;
   inp.value='';inp.style.height='auto';
-  const{error}=await _sb.from('messages').insert({role:currentRole,text});
+  const{error}=await _sb.from('messages').insert({role:currentRole,text,channel:activeChannel});
   if(error)showToast('Send failed: '+error.message);
 }
 function chatKeydown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChatMessage();}}
