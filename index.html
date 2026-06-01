@@ -645,9 +645,10 @@ body.staff-mode .admin-only{display:none!important;}
 <!-- INVENTORY MODAL -->
 <div class="modal-overlay" id="inv-modal">
   <div class="inv-modal">
-    <div class="inv-modal-title">Add Inventory Item</div>
-    <div class="inv-modal-sub">Fabrics, materials, consumables</div>
+    <div class="inv-modal-title" id="inv-modal-title">Add Inventory Item</div>
+    <div class="inv-modal-sub" id="inv-modal-sub">Fabrics, materials, consumables</div>
     <button class="inv-modal-close" onclick="closeModal('inv-modal')">×</button>
+    <input type="hidden" id="inv-editing-id">
     <div class="mf"><label>Item Name</label><input type="text" id="inv-name" placeholder="e.g. Sublimation Polyester"></div>
     <div class="mf-row">
       <div class="mf"><label>Category</label>
@@ -674,9 +675,10 @@ body.staff-mode .admin-only{display:none!important;}
       </select>
     </div>
     <div class="mf"><label>Notes</label><textarea id="inv-notes" placeholder="Any additional details..." style="min-height:50px;font-family:var(--fu);font-size:13px;text-transform:none;letter-spacing:0;font-weight:400"></textarea></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:1rem;padding-top:1rem;border-top:.5px solid var(--border)">
+    <div style="display:flex;gap:8px;align-items:center;margin-top:1rem;padding-top:1rem;border-top:.5px solid var(--border)">
+      <button class="btn btn-o" id="inv-delete-btn" style="display:none;color:#E24B4A;border-color:#E24B4A;margin-right:auto" onclick="deleteInvItem()"><i class="ti ti-trash"></i> Delete</button>
       <button class="btn btn-o" onclick="closeModal('inv-modal')">Cancel</button>
-      <button class="btn btn-p" onclick="saveInvItem()">Add Item</button>
+      <button class="btn btn-p" id="inv-save-btn" onclick="saveInvItem()">Add Item</button>
     </div>
   </div>
 </div>
@@ -721,7 +723,7 @@ function invCardHTML(i){
   const lbl=stock<min?'Critical':stock<min*1.5?'Low':'OK';
   const sty=cls==='cr'?'style="background:#FDECEA;color:#C0392B"':'';
   const bcls=cls==='ok'?'st-pk':cls==='lw'?'st-fi':'';
-  return `<div class="ic"><div class="it"><div><div style="font-size:12px;font-weight:500">${i.name}</div><div style="font-size:10px;color:var(--muted)">${i.category} · ${i.unit}</div></div><span class="jst ${bcls}" ${sty}>${lbl}</span></div><div class="iq">${stock} ${i.unit}</div><div class="stbar"><div class="stfill ${cls}" style="width:${Math.min(pct,100)}%"></div></div><div class="ifoot"><span>Min: ${min} ${i.unit}</span><span>${i.supplier||'—'}</span></div></div>`;
+  return `<div class="ic" style="cursor:pointer" onclick="openInvModal('${i.id}')"><div class="it"><div><div style="font-size:12px;font-weight:500">${i.name}</div><div style="font-size:10px;color:var(--muted)">${i.category} · ${i.unit}</div></div><span class="jst ${bcls}" ${sty}>${lbl}</span></div><div class="iq">${stock} ${i.unit}</div><div class="stbar"><div class="stfill ${cls}" style="width:${Math.min(pct,100)}%"></div></div><div class="ifoot"><span>Min: ${min} ${i.unit}</span><span>${i.supplier||'—'}</span></div></div>`;
 }
 function renderInventory(items){
   const cont=document.getElementById('inv-content');if(!cont)return;
@@ -746,7 +748,7 @@ async function loadAllData(){
     (pr||[]).forEach(row=>{if(projects[row.dept])projects[row.dept].push(dbToProject(row));});
     customPresets={jersey:[],dress:[],merch:[],scrub:[]};
     (cr||[]).forEach(row=>{if(customPresets[row.dept])customPresets[row.dept].push({id:row.id,label:row.label,c:row.colors});});
-    renderInventory(ir||[]);
+    inventoryItems=ir||[];renderInventory(inventoryItems);
   }catch(e){console.error(e);showToast('Could not load data');}
 }
 
@@ -769,7 +771,7 @@ const DEPT_CFG={
 
 let projects={jersey:[],dress:[],merch:[],scrub:[]};
 
-let dressStyleIdx=0,currentRole='admin',modalMode='add',modalDept='jersey',modalProjId=null,modalPalState={},customPresets={};
+let dressStyleIdx=0,currentRole='admin',modalMode='add',modalDept='jersey',modalProjId=null,modalPalState={},customPresets={},inventoryItems=[];
 const deptTabs={jersey:'all',dress:'all',merch:'all',scrub:'all'};
 const deptViews={jersey:'grid',dress:'grid',merch:'grid',scrub:'grid'};
 let apparelView='grid',apparelTab='all';
@@ -1270,26 +1272,52 @@ function renderFieldsRight(dept,cfg,proj,mode){
 }
 
 // ══ INVENTORY ══
-function openInvModal(){document.getElementById('inv-modal').classList.add('open');}
+function openInvModal(id){
+  const editId=id||'';
+  document.getElementById('inv-editing-id').value=editId;
+  const title=document.getElementById('inv-modal-title');
+  const sub=document.getElementById('inv-modal-sub');
+  const btn=document.getElementById('inv-save-btn');
+  const del=document.getElementById('inv-delete-btn');
+  if(editId){
+    const item=inventoryItems.find(i=>i.id===editId);if(!item)return;
+    title.textContent='Edit Inventory Item';sub.textContent=item.name;btn.textContent='Save Changes';del.style.display='';
+    document.getElementById('inv-name').value=item.name;
+    document.getElementById('inv-cat').value=item.category;
+    document.getElementById('inv-unit').value=item.unit;
+    document.getElementById('inv-stock').value=item.stock;
+    document.getElementById('inv-min').value=item.min_stock;
+    document.getElementById('inv-supplier').value=item.supplier||'';
+    document.getElementById('inv-dept').value=item.dept||'All Departments';
+    document.getElementById('inv-notes').value=item.notes||'';
+  }else{
+    title.textContent='Add Inventory Item';sub.textContent='Fabrics, materials, consumables';btn.textContent='Add Item';del.style.display='none';
+    ['inv-name','inv-stock','inv-min','inv-supplier','inv-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    document.getElementById('inv-cat').value='Fabric';document.getElementById('inv-unit').value='meters';
+  }
+  document.getElementById('inv-modal').classList.add('open');
+}
 async function saveInvItem(){
   const name=document.getElementById('inv-name').value.trim();
   if(!name){document.getElementById('inv-name').focus();showToast('Please enter item name');return;}
-  const item={
-    name,
-    category:document.getElementById('inv-cat').value,
-    unit:document.getElementById('inv-unit').value,
-    stock:parseFloat(document.getElementById('inv-stock').value)||0,
-    min_stock:parseFloat(document.getElementById('inv-min').value)||0,
-    supplier:document.getElementById('inv-supplier').value.trim(),
-    dept:document.getElementById('inv-dept').value,
-    notes:document.getElementById('inv-notes').value.trim()
-  };
-  const{error}=await _sb.from('inventory').insert(item);
+  const editId=document.getElementById('inv-editing-id').value;
+  const item={name,category:document.getElementById('inv-cat').value,unit:document.getElementById('inv-unit').value,
+    stock:parseFloat(document.getElementById('inv-stock').value)||0,min_stock:parseFloat(document.getElementById('inv-min').value)||0,
+    supplier:document.getElementById('inv-supplier').value.trim(),dept:document.getElementById('inv-dept').value,notes:document.getElementById('inv-notes').value.trim()};
+  const{error}=editId?await _sb.from('inventory').update(item).eq('id',editId):await _sb.from('inventory').insert(item);
   if(error){showToast('Save failed: '+error.message);return;}
   const{data:all}=await _sb.from('inventory').select('*').order('created_at');
-  renderInventory(all||[]);
-  ['inv-name','inv-stock','inv-min','inv-supplier','inv-notes'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
-  closeModal('inv-modal');showToast('Item added: '+name);
+  inventoryItems=all||[];renderInventory(inventoryItems);
+  closeModal('inv-modal');showToast(editId?'Item updated':'Item added: '+name);
+}
+async function deleteInvItem(){
+  const editId=document.getElementById('inv-editing-id').value;if(!editId)return;
+  if(!confirm('Delete this item?'))return;
+  const{error}=await _sb.from('inventory').delete().eq('id',editId);
+  if(error){showToast('Delete failed: '+error.message);return;}
+  const{data:all}=await _sb.from('inventory').select('*').order('created_at');
+  inventoryItems=all||[];renderInventory(inventoryItems);
+  closeModal('inv-modal');showToast('Item deleted');
 }
 
 // ══ SETTINGS ══
