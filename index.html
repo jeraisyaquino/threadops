@@ -330,6 +330,40 @@ body{font-family:var(--fu);background:var(--bg);color:var(--text);min-height:100
 .chat-send{width:40px;height:40px;border-radius:12px;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;flex-shrink:0;transition:opacity .15s;}
 .chat-send:hover{opacity:.85;}
 @media(max-width:768px){.chat-sidebar{width:180px;}.chat-screen{height:calc(100vh - 52px - 2rem);}}
+/* ── OVERDUE ── */
+.st-ov{background:#FDECEA;color:#C0392B;}
+/* ── QUICK ADVANCE ── */
+.proj-adv{position:absolute;bottom:7px;right:7px;width:24px;height:24px;border-radius:6px;background:var(--nav);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;opacity:.7;transition:opacity .15s;}
+.proj-adv:hover{opacity:1;}
+/* ── NEEDS ATTENTION ── */
+.attn-wrap{background:var(--card);border-radius:var(--radius);border:.5px solid var(--border);padding:.875rem 1rem;margin-bottom:1.25rem;}
+.attn-head{display:flex;align-items:center;gap:7px;margin-bottom:10px;}
+.attn-head-title{font-family:var(--fs);font-size:15px;font-weight:700;letter-spacing:.3px;}
+.attn-item{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:8px;cursor:pointer;transition:background .12s;border:.5px solid var(--border);margin-bottom:5px;}
+.attn-item:last-child{margin-bottom:0;}
+.attn-item:hover{background:var(--bg);}
+.attn-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.attn-body{flex:1;min-width:0;}
+.attn-title{font-size:12px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.attn-sub{font-size:10px;color:var(--muted);margin-top:1px;}
+/* ── PAYMENT SUMMARY ── */
+.pay-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.25rem;}
+.pay-card{background:var(--card);border-radius:var(--radius);padding:.75rem 1rem;border:.5px solid var(--border);}
+.pay-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
+.pay-val{font-family:var(--fs);font-size:22px;font-weight:800;color:var(--text);line-height:1;}
+@media(max-width:480px){.pay-row{grid-template-columns:1fr;}}
+/* ── ACTIVITY FEED ── */
+.feed-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:10px;cursor:pointer;border:.5px solid var(--border);background:var(--card);margin-bottom:6px;transition:background .12s;}
+.feed-item:hover{background:#f7f5f1;}
+.feed-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.feed-body{flex:1;min-width:0;}
+.feed-msg{font-size:12px;color:var(--text);line-height:1.4;}
+.feed-meta{font-size:10px;color:var(--muted);margin-top:3px;}
+.feed-badge{font-size:10px;padding:2px 7px;border-radius:20px;white-space:nowrap;flex-shrink:0;align-self:flex-start;margin-top:2px;}
+/* ── TIMELINE ── */
+.tl-tab-row{display:flex;gap:6px;margin-bottom:14px;border-bottom:.5px solid var(--border);padding-bottom:10px;}
+.tl-tab{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:.5px solid var(--border);background:var(--card);color:var(--muted);transition:all .15s;}
+.tl-tab.active{background:var(--nav);color:#fff;border-color:var(--nav);}
 /* ── TOAST ── */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--nav);color:#fff;font-size:12px;padding:7px 18px;border-radius:20px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999;white-space:nowrap;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
@@ -434,7 +468,7 @@ body.staff-mode .admin-only{display:none!important;}
       <div class="ni" onclick="showScreen('apparel',this)"><i class="ti ti-shirt"></i><span class="ni-label">Apparel Preview</span></div>
       <div class="ni" onclick="showScreen('inventory',this)"><i class="ti ti-package"></i><span class="ni-label">Inventory</span><span class="nbadge">3</span></div>
       <div class="ni" onclick="showScreen('map',this)"><i class="ti ti-map"></i><span class="ni-label">Project Map</span></div>
-      <div class="ni" onclick="showScreen('chat',this)" id="nav-chat"><i class="ti ti-message-circle-2"></i><span class="ni-label">Team Chat</span></div>
+      <div class="ni" onclick="showScreen('chat',this)" id="nav-chat"><i class="ti ti-activity"></i><span class="ni-label">Activity</span></div>
       <div class="sl">Departments</div>
       <div class="ni" onclick="showScreen('jersey',this)"><span class="ddot" style="background:#E85D26"></span><span class="ni-label dl-0">Jersey Sublimation</span></div>
       <div class="ni" onclick="showScreen('dress',this)"><span class="ddot" style="background:#9B59B6"></span><span class="ni-label dl-1">Custom Dress</span></div>
@@ -452,12 +486,14 @@ body.staff-mode .admin-only{display:none!important;}
           <div class="ph-left"><div class="pt">Operations Dashboard</div><div class="ps">Live production overview</div></div>
           
         </div>
+        <div id="needs-attention"></div>
         <div class="sg">
-          <div class="sc"><div class="si or"><i class="ti ti-clipboard-list"></i></div><div class="sv">24</div><div class="sl2">Active Projects</div><div class="sd up">↑ 3 this week</div></div>
-          <div class="sc"><div class="si gn"><i class="ti ti-check"></i></div><div class="sv">138</div><div class="sl2">Completed</div><div class="sd up">↑ 12% vs last mo.</div></div>
-          <div class="sc"><div class="si gd"><i class="ti ti-clock"></i></div><div class="sv">6</div><div class="sl2">Due Today</div><div class="sd dn">⚠ 2 at risk</div></div>
-          <div class="sc"><div class="si nv"><i class="ti ti-package"></i></div><div class="sv">3</div><div class="sl2">Low Stock</div><div class="sd dn">⚠ Reorder</div></div>
+          <div class="sc"><div class="si or"><i class="ti ti-clipboard-list"></i></div><div class="sv" id="stat-active">—</div><div class="sl2">Active Projects</div></div>
+          <div class="sc"><div class="si gn"><i class="ti ti-check"></i></div><div class="sv" id="stat-packed">—</div><div class="sl2">Completed</div></div>
+          <div class="sc"><div class="si gd"><i class="ti ti-alert-triangle"></i></div><div class="sv" id="stat-overdue">—</div><div class="sl2">Overdue</div><div class="sd dn" id="stat-overdue-sub"></div></div>
+          <div class="sc"><div class="si nv"><i class="ti ti-package"></i></div><div class="sv" id="stat-lowstock">—</div><div class="sl2">Low Stock</div></div>
         </div>
+        <div class="pay-row" id="pay-summary"></div>
         <div class="stitle">Department Progress</div>
         <div class="dg">
           <div class="dc"><div class="dh"><div class="dn"><span class="ddot" style="background:#E85D26"></span><span class="dl-0">Jersey Sublimation</span></div><div class="dpct">8 projects</div></div><div class="pb"><div class="pf" style="width:72%;background:#E85D26"></div></div><div class="plbl"><span>Progress</span><span>72%</span></div><div class="jr"><span class="jn">Warriors Team Set (40 pcs)</span><span class="jst st-on">On-going</span></div><div class="jr"><span class="jn">Phoenix FC Batch 2</span><span class="jst st-on">On-going</span></div><div class="jr"><span class="jn">Barangay League Set</span><span class="jst st-fi">Finishing</span></div><div class="jr"><span class="jn">Corporate Intramurals</span><span class="jst st-pk">Packed ✓</span></div></div>
@@ -498,13 +534,11 @@ body.staff-mode .admin-only{display:none!important;}
             <button class="btn btn-p" onclick="openProjectModal(null,'jersey','add')"><i class="ti ti-plus"></i>Add Project</button>
           </div>
         </div>
-        <div class="tab-row"><div class="tab-btn active" onclick="switchDeptTab('jersey','all',this)">All</div><div class="tab-btn" onclick="switchDeptTab('jersey','active',this)">Active</div><div class="tab-btn" onclick="switchDeptTab('jersey','packed',this)">Packed</div></div>
-        <div id="jersey-all-grid" class="proj-grid"></div>
-        <div id="jersey-all-list" class="proj-list" style="display:none"></div>
-        <div id="jersey-active-grid" class="proj-grid" style="display:none"></div>
-        <div id="jersey-active-list" class="proj-list" style="display:none"></div>
-        <div id="jersey-packed-grid" class="proj-grid" style="display:none"></div>
-        <div id="jersey-packed-list" class="proj-list" style="display:none"></div>
+        <div class="tab-row"><div class="tab-btn active" onclick="switchDeptTab('jersey','all',this)">All</div><div class="tab-btn" onclick="switchDeptTab('jersey','active',this)">Active</div><div class="tab-btn" onclick="switchDeptTab('jersey','packed',this)">Packed</div><div class="tab-btn" onclick="switchDeptTab('jersey','overdue',this)" style="color:#C0392B">Overdue</div></div>
+        <div id="jersey-all-grid" class="proj-grid"></div><div id="jersey-all-list" class="proj-list" style="display:none"></div>
+        <div id="jersey-active-grid" class="proj-grid" style="display:none"></div><div id="jersey-active-list" class="proj-list" style="display:none"></div>
+        <div id="jersey-packed-grid" class="proj-grid" style="display:none"></div><div id="jersey-packed-list" class="proj-list" style="display:none"></div>
+        <div id="jersey-overdue-grid" class="proj-grid" style="display:none"></div><div id="jersey-overdue-list" class="proj-list" style="display:none"></div>
       </div>
 
       <!-- DRESS -->
@@ -520,13 +554,11 @@ body.staff-mode .admin-only{display:none!important;}
           </div>
         </div>
         <div class="dress-tabs"><div class="dtab active" onclick="switchDressStyle(0,this)">Dress 1</div><div class="dtab" onclick="switchDressStyle(1,this)">Dress 2</div><div class="dtab" onclick="switchDressStyle(2,this)">Dress 3</div></div>
-        <div class="tab-row"><div class="tab-btn active" onclick="switchDeptTab('dress','all',this)">All</div><div class="tab-btn" onclick="switchDeptTab('dress','active',this)">Active</div><div class="tab-btn" onclick="switchDeptTab('dress','packed',this)">Packed</div></div>
-        <div id="dress-all-grid" class="proj-grid"></div>
-        <div id="dress-all-list" class="proj-list" style="display:none"></div>
-        <div id="dress-active-grid" class="proj-grid" style="display:none"></div>
-        <div id="dress-active-list" class="proj-list" style="display:none"></div>
-        <div id="dress-packed-grid" class="proj-grid" style="display:none"></div>
-        <div id="dress-packed-list" class="proj-list" style="display:none"></div>
+        <div class="tab-row"><div class="tab-btn active" onclick="switchDeptTab('dress','all',this)">All</div><div class="tab-btn" onclick="switchDeptTab('dress','active',this)">Active</div><div class="tab-btn" onclick="switchDeptTab('dress','packed',this)">Packed</div><div class="tab-btn" onclick="switchDeptTab('dress','overdue',this)" style="color:#C0392B">Overdue</div></div>
+        <div id="dress-all-grid" class="proj-grid"></div><div id="dress-all-list" class="proj-list" style="display:none"></div>
+        <div id="dress-active-grid" class="proj-grid" style="display:none"></div><div id="dress-active-list" class="proj-list" style="display:none"></div>
+        <div id="dress-packed-grid" class="proj-grid" style="display:none"></div><div id="dress-packed-list" class="proj-list" style="display:none"></div>
+        <div id="dress-overdue-grid" class="proj-grid" style="display:none"></div><div id="dress-overdue-list" class="proj-list" style="display:none"></div>
       </div>
 
       <!-- MERCH -->
@@ -541,13 +573,11 @@ body.staff-mode .admin-only{display:none!important;}
             <button class="btn btn-p" onclick="openProjectModal(null,'merch','add')"><i class="ti ti-plus"></i>Add Project</button>
           </div>
         </div>
-        <div class="tab-row"><div class="tab-btn active" onclick="switchDeptTab('merch','all',this)">All</div><div class="tab-btn" onclick="switchDeptTab('merch','active',this)">Active</div><div class="tab-btn" onclick="switchDeptTab('merch','packed',this)">Packed</div></div>
-        <div id="merch-all-grid" class="proj-grid"></div>
-        <div id="merch-all-list" class="proj-list" style="display:none"></div>
-        <div id="merch-active-grid" class="proj-grid" style="display:none"></div>
-        <div id="merch-active-list" class="proj-list" style="display:none"></div>
-        <div id="merch-packed-grid" class="proj-grid" style="display:none"></div>
-        <div id="merch-packed-list" class="proj-list" style="display:none"></div>
+        <div class="tab-row"><div class="tab-btn active" onclick="switchDeptTab('merch','all',this)">All</div><div class="tab-btn" onclick="switchDeptTab('merch','active',this)">Active</div><div class="tab-btn" onclick="switchDeptTab('merch','packed',this)">Packed</div><div class="tab-btn" onclick="switchDeptTab('merch','overdue',this)" style="color:#C0392B">Overdue</div></div>
+        <div id="merch-all-grid" class="proj-grid"></div><div id="merch-all-list" class="proj-list" style="display:none"></div>
+        <div id="merch-active-grid" class="proj-grid" style="display:none"></div><div id="merch-active-list" class="proj-list" style="display:none"></div>
+        <div id="merch-packed-grid" class="proj-grid" style="display:none"></div><div id="merch-packed-list" class="proj-list" style="display:none"></div>
+        <div id="merch-overdue-grid" class="proj-grid" style="display:none"></div><div id="merch-overdue-list" class="proj-list" style="display:none"></div>
       </div>
 
       <!-- SCRUB -->
@@ -562,13 +592,11 @@ body.staff-mode .admin-only{display:none!important;}
             <button class="btn btn-p" onclick="openProjectModal(null,'scrub','add')"><i class="ti ti-plus"></i>Add Project</button>
           </div>
         </div>
-        <div class="tab-row"><div class="tab-btn active" onclick="switchDeptTab('scrub','all',this)">All</div><div class="tab-btn" onclick="switchDeptTab('scrub','active',this)">Active</div><div class="tab-btn" onclick="switchDeptTab('scrub','packed',this)">Packed</div></div>
-        <div id="scrub-all-grid" class="proj-grid"></div>
-        <div id="scrub-all-list" class="proj-list" style="display:none"></div>
-        <div id="scrub-active-grid" class="proj-grid" style="display:none"></div>
-        <div id="scrub-active-list" class="proj-list" style="display:none"></div>
-        <div id="scrub-packed-grid" class="proj-grid" style="display:none"></div>
-        <div id="scrub-packed-list" class="proj-list" style="display:none"></div>
+        <div class="tab-row"><div class="tab-btn active" onclick="switchDeptTab('scrub','all',this)">All</div><div class="tab-btn" onclick="switchDeptTab('scrub','active',this)">Active</div><div class="tab-btn" onclick="switchDeptTab('scrub','packed',this)">Packed</div><div class="tab-btn" onclick="switchDeptTab('scrub','overdue',this)" style="color:#C0392B">Overdue</div></div>
+        <div id="scrub-all-grid" class="proj-grid"></div><div id="scrub-all-list" class="proj-list" style="display:none"></div>
+        <div id="scrub-active-grid" class="proj-grid" style="display:none"></div><div id="scrub-active-list" class="proj-list" style="display:none"></div>
+        <div id="scrub-packed-grid" class="proj-grid" style="display:none"></div><div id="scrub-packed-list" class="proj-list" style="display:none"></div>
+        <div id="scrub-overdue-grid" class="proj-grid" style="display:none"></div><div id="scrub-overdue-list" class="proj-list" style="display:none"></div>
       </div>
 
       <!-- INVENTORY -->
@@ -665,20 +693,16 @@ body.staff-mode .admin-only{display:none!important;}
         </div>
       </div>
 
-      <!-- CHAT -->
+      <!-- ACTIVITY FEED -->
       <div class="screen" id="screen-chat">
         <div class="chat-screen">
           <div class="chat-sidebar">
-            <div class="chat-sidebar-head">Channels</div>
-            <div class="chat-ch-list" id="chat-ch-list"></div>
+            <div class="chat-sidebar-head">Departments</div>
+            <div class="chat-ch-list" id="feed-dept-list"></div>
           </div>
           <div class="chat-main">
-            <div class="chat-main-head" id="chat-main-head"></div>
-            <div class="chat-msgs" id="chat-msgs"></div>
-            <div class="chat-input-row">
-              <textarea id="chat-inp" placeholder="Type a message… (Enter ↵ to send)" rows="1" onkeydown="chatKeydown(event)" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-              <button class="chat-send" onclick="sendChatMessage()" title="Send"><i class="ti ti-send"></i></button>
-            </div>
+            <div class="chat-main-head" id="feed-main-head"></div>
+            <div class="chat-msgs" id="feed-items" style="gap:0;background:#fafaf8;padding:14px 12px;"></div>
           </div>
         </div>
       </div>
@@ -734,6 +758,68 @@ function contrastColor(hex){const n=parseInt(hex.replace('#',''),16);const r=(n>
 function uid(){return '_'+Math.random().toString(36).slice(2,9);}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
 function stColor(s){return s==='On-going'?'st-on':s==='Finishing'?'st-fi':s==='Packed'?'st-pk':'st-qu';}
+function isOverdue(p){
+  if(p.status==='Packed'||!p.dateEnd)return false;
+  return new Date(p.dateEnd)<new Date(new Date().toDateString());
+}
+function stBadge(p){
+  if(isOverdue(p))return`<span class="jst st-ov">Overdue</span>`;
+  return`<span class="jst ${stColor(p.status)}">${p.status}</span>`;
+}
+const STATUS_NEXT={'In Queue':'On-going','On-going':'Finishing','Finishing':'Packed'};
+async function insertTimelineEntry(projectId,eventType,oldVal,newVal){
+  await _sb.from('project_timeline').insert({project_id:projectId,event_type:eventType,old_value:oldVal||null,new_value:newVal||null,changed_by:currentRole});
+}
+async function insertFeedEntry(dept,projectId,projectName,message,type){
+  const{data}=await _sb.from('activity_feed').insert({dept,project_id:projectId||null,project_name:projectName,message,type,created_by:currentRole}).select().single();
+  if(data)feedItems.unshift(data);
+}
+function renderDashboardStats(){
+  const all=Object.values(projects).flat();
+  const active=all.filter(p=>p.status!=='Packed').length;
+  const packed=all.filter(p=>p.status==='Packed').length;
+  const overdue=all.filter(p=>isOverdue(p)).length;
+  const lowStock=inventoryItems.filter(i=>(i.stock||0)<(i.min_stock||0)).length;
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+  set('stat-active',active);set('stat-packed',packed);set('stat-overdue',overdue);set('stat-lowstock',lowStock);
+  const os=document.getElementById('stat-overdue-sub');if(os)os.textContent=overdue>0?'⚠ Needs action':'';
+}
+function renderPaymentSummary(){
+  const el=document.getElementById('pay-summary');if(!el)return;
+  const all=Object.values(projects).flat();
+  const billed=all.reduce((s,p)=>s+(p.total||0),0);
+  const collected=all.reduce((s,p)=>s+(p.dp||0),0);
+  const balance=billed-collected;
+  el.innerHTML=`
+    <div class="pay-card"><div class="pay-lbl">Total Billed</div><div class="pay-val">₱${billed.toLocaleString()}</div></div>
+    <div class="pay-card"><div class="pay-lbl">Total Collected</div><div class="pay-val" style="color:#2E8B57">₱${collected.toLocaleString()}</div></div>
+    <div class="pay-card"><div class="pay-lbl">Outstanding</div><div class="pay-val" style="color:${balance>0?'#E85D26':'#2E8B57'}">₱${balance.toLocaleString()}</div></div>`;
+}
+function renderNeedsAttention(){
+  const el=document.getElementById('needs-attention');if(!el)return;
+  const today=new Date(new Date().toDateString());
+  const in7=new Date(today);in7.setDate(today.getDate()+7);
+  const all=Object.values(projects).flat();
+  const items=[];
+  all.filter(p=>isOverdue(p)).forEach(p=>{const dept=Object.keys(projects).find(d=>projects[d].includes(p));items.push({type:'overdue',p,dept});});
+  all.filter(p=>p.status!=='Packed'&&p.dateEnd&&!isOverdue(p)&&new Date(p.dateEnd)<=in7).forEach(p=>{const dept=Object.keys(projects).find(d=>projects[d].includes(p));items.push({type:'due',p,dept});});
+  inventoryItems.filter(i=>(i.stock||0)<(i.min_stock||0)).forEach(i=>items.push({type:'stock',i}));
+  const top=items.slice(0,5);
+  if(!top.length){el.innerHTML='';return;}
+  const deptColor={jersey:'#E85D26',dress:'#9B59B6',merch:'#F0A500',scrub:'#2E8B57'};
+  const rows=top.map(item=>{
+    if(item.type==='overdue'){
+      const col=deptColor[item.dept]||'#E24B4A';
+      return`<div class="attn-item" onclick="openProjectModal('${item.p.id}','${item.dept}','view')"><div class="attn-icon" style="background:#FDECEA"><i class="ti ti-clock-x" style="color:#C0392B;font-size:15px"></i></div><div class="attn-body"><div class="attn-title">${item.p.name}</div><div class="attn-sub">Overdue · due ${item.p.dateEnd}</div></div><span class="jst st-ov" style="font-size:10px">Overdue</span></div>`;
+    }
+    if(item.type==='due'){
+      const col=deptColor[item.dept]||'#F0A500';
+      return`<div class="attn-item" onclick="openProjectModal('${item.p.id}','${item.dept}','view')"><div class="attn-icon" style="background:#FEF7E6"><i class="ti ti-clock" style="color:#F0A500;font-size:15px"></i></div><div class="attn-body"><div class="attn-title">${item.p.name}</div><div class="attn-sub">Due ${item.p.dateEnd} · ${item.p.status}</div></div><span class="jst st-fi" style="font-size:10px">Due soon</span></div>`;
+    }
+    return`<div class="attn-item" onclick="openInvModal('${item.i.id}')"><div class="attn-icon" style="background:#E8EBF3"><i class="ti ti-package" style="color:var(--nav);font-size:15px"></i></div><div class="attn-body"><div class="attn-title">${item.i.name}</div><div class="attn-sub">Stock: ${item.i.stock} ${item.i.unit} (min ${item.i.min_stock})</div></div><span class="jst st-fi" style="font-size:10px">Low stock</span></div>`;
+  }).join('');
+  el.innerHTML=`<div class="attn-wrap"><div class="attn-head"><i class="ti ti-bell-ringing" style="color:var(--accent);font-size:17px"></i><span class="attn-head-title">Needs Attention</span></div>${rows}</div>`;
+}
 
 // ── Supabase helpers ──
 function dbToProject(row){
@@ -770,33 +856,32 @@ function renderInventory(items){
 }
 async function loadAllData(){
   try{
-    const[{data:pr,error:pe},{data:cr,error:ce},{data:ir,error:ie},{data:mr,error:me}]=await Promise.all([
+    const[{data:pr,error:pe},{data:cr,error:ce},{data:ir,error:ie},{data:fr,error:fe}]=await Promise.all([
       _sb.from('projects').select('*').order('created_at'),
       _sb.from('custom_presets').select('*').order('created_at'),
       _sb.from('inventory').select('*').order('created_at'),
-      _sb.from('messages').select('*').order('created_at')
+      _sb.from('activity_feed').select('*').order('created_at',{ascending:false}).limit(100)
     ]);
-    if(pe)throw pe;if(ce)throw ce;if(ie)throw ie;if(me)throw me;
+    if(pe)throw pe;if(ce)throw ce;if(ie)throw ie;if(fe)throw fe;
     projects={jersey:[],dress:[],merch:[],scrub:[]};
     (pr||[]).forEach(row=>{if(projects[row.dept])projects[row.dept].push(dbToProject(row));});
     customPresets={jersey:[],dress:[],merch:[],scrub:[]};
     (cr||[]).forEach(row=>{if(customPresets[row.dept])customPresets[row.dept].push({id:row.id,label:row.label,c:row.colors});});
     inventoryItems=ir||[];renderInventory(inventoryItems);
-    chatMessages=mr||[];
-    if(!_chatChannel){
-      _chatChannel=_sb.channel('public:messages')
-        .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages'},payload=>{
-          chatMessages.push(payload.new);
-          const ch=payload.new.channel||'general';
-          const chatActive=document.getElementById('screen-chat')?.classList.contains('active');
-          if(chatActive){
-            renderChannelList();
-            if(ch===activeChannel){renderChatHeader();renderChat();}
-            else{unreadCounts[ch]=(unreadCounts[ch]||0)+1;renderChannelList();}
-          } else if(payload.new.role!==currentRole){
-            const nav=document.getElementById('nav-chat');
-            if(nav&&!nav.querySelector('.nbadge'))nav.insertAdjacentHTML('beforeend','<span class="nbadge">!</span>');
-          }
+    feedItems=fr||[];
+    // auto-flag low-stock items into feed if not recently added
+    for(const item of inventoryItems){
+      if((item.stock||0)<(item.min_stock||0)){
+        const exists=feedItems.some(f=>f.type==='inventory_alert'&&f.project_name===item.name);
+        if(!exists)await insertFeedEntry('all',null,item.name,`${item.name} is below minimum stock (${item.stock} / ${item.min_stock} ${item.unit})`,'inventory_alert');
+      }
+    }
+    if(!_feedChannel){
+      _feedChannel=_sb.channel('public:activity_feed')
+        .on('postgres_changes',{event:'INSERT',schema:'public',table:'activity_feed'},payload=>{
+          feedItems.unshift(payload.new);
+          if(document.getElementById('screen-chat')?.classList.contains('active'))renderFeed();
+          else{const nav=document.getElementById('nav-chat');if(nav&&!nav.querySelector('.nbadge'))nav.insertAdjacentHTML('beforeend','<span class="nbadge">!</span>');}
         }).subscribe();
     }
   }catch(e){console.error(e);showToast('Could not load data');}
@@ -822,6 +907,7 @@ const DEPT_CFG={
 let projects={jersey:[],dress:[],merch:[],scrub:[]};
 
 let dressStyleIdx=0,currentRole='admin',modalMode='add',modalDept='jersey',modalProjId=null,modalPalState={},customPresets={},inventoryItems=[],chatMessages=[],_chatChannel=null;
+let feedItems=[],activeFeedDept='all',_feedChannel=null;
 const deptTabs={jersey:'all',dress:'all',merch:'all',scrub:'all'};
 const deptViews={jersey:'grid',dress:'grid',merch:'grid',scrub:'grid'};
 let apparelView='grid',apparelTab='all';
@@ -845,6 +931,7 @@ async function selectRole(r){
   startClock();buildSettings();loadBranding();
   await loadAllData();
   renderAllDepts();renderApparelPreview();
+  renderDashboardStats();renderNeedsAttention();renderPaymentSummary();
 }
 function switchRole(){
   currentRole=currentRole==='admin'?'staff':'admin';
@@ -873,11 +960,93 @@ function showScreen(id,el){
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
   if(el)el.classList.add('active');
   if(id==='apparel')renderApparelPreview();
+  if(id==='dashboard'){renderDashboardStats();renderNeedsAttention();renderPaymentSummary();}
   if(id==='chat'){
-    renderChannelList();renderChatHeader();renderChat();
+    renderFeedDeptList();renderFeedHeader();renderFeed();
     const b=document.getElementById('nav-chat').querySelector('.nbadge');if(b)b.remove();
   }
   closeSidebar();
+}
+
+// ══ MODAL TIMELINE TAB ══
+function switchModalTab(tab){
+  document.getElementById('modal-tab-det').classList.toggle('active',tab==='details');
+  document.getElementById('modal-tab-tl').classList.toggle('active',tab==='timeline');
+  document.getElementById('modal-details-pane').style.display=tab==='details'?'':'none';
+  document.getElementById('modal-timeline-pane').style.display=tab==='timeline'?'':'none';
+  if(tab==='timeline')loadTimeline(modalProjId);
+}
+async function loadTimeline(projId){
+  const pane=document.getElementById('modal-timeline-pane');if(!pane)return;
+  const{data,error}=await _sb.from('project_timeline').select('*').eq('project_id',projId).order('created_at',{ascending:false});
+  if(error){pane.innerHTML='<div style="color:var(--muted);font-size:12px;padding:1rem">Could not load timeline.</div>';return;}
+  if(!data||!data.length){pane.innerHTML='<div style="text-align:center;color:var(--muted);padding:2rem 0;font-size:13px">No timeline events yet.</div>';return;}
+  const evtIcon={created:'ti-circle-plus',status_change:'ti-refresh',note:'ti-note'};
+  const evtColor={created:'#2E8B57',status_change:'#E85D26',note:'#1A2744'};
+  pane.innerHTML=`<div class="tl">${data.map(e=>{
+    const ts=new Date(new Date(e.created_at).toLocaleString('en-US',{timeZone:'Asia/Manila'}));
+    const label=e.event_type==='status_change'?`${e.old_value} → ${e.new_value}`:e.event_type==='created'?`Created (${e.new_value||'In Queue'})`:e.new_value||'Note added';
+    return`<div class="tli"><div class="tldot act" style="border-color:${evtColor[e.event_type]||'#1A2744'};background:${evtColor[e.event_type]||'#1A2744'}"><i class="ti ${evtIcon[e.event_type]||'ti-dots'}" style="font-size:7px;color:#fff"></i></div>
+      <div class="tlt">${label}</div>
+      <div class="tls">${ts.toLocaleDateString('en-PH',{month:'short',day:'numeric'})} · ${ts.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})} · ${e.changed_by}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ══ ACTIVITY FEED ══
+const FEED_DEPTS=[
+  {key:'all',   name:'All Departments', color:'#1A2744', ic:'A'},
+  {key:'jersey',name:'Jersey Sub.',     color:'#E85D26', ic:'J'},
+  {key:'dress', name:'Custom Dress',    color:'#9B59B6', ic:'D'},
+  {key:'merch', name:'Merchandise',     color:'#F0A500', ic:'M'},
+  {key:'scrub', name:'Scrub Suits',     color:'#2E8B57', ic:'S'},
+];
+const FEED_TYPE_CFG={
+  status_update:{icon:'ti-refresh',    bg:'#FEF0E9',fg:'#E85D26',label:'Status'},
+  created:      {icon:'ti-circle-plus',bg:'#E9F5EE',fg:'#2E8B57',label:'New'},
+  packed:       {icon:'ti-package',    bg:'#E8EBF3',fg:'#1A2744',label:'Packed'},
+  inventory_alert:{icon:'ti-alert-triangle',bg:'#FEF7E6',fg:'#F0A500',label:'Stock'},
+  note:         {icon:'ti-note',       bg:'#F0F1F5',fg:'#7A8099',label:'Note'},
+};
+function renderFeedDeptList(){
+  const el=document.getElementById('feed-dept-list');if(!el)return;
+  el.innerHTML=FEED_DEPTS.map(d=>{
+    const fg=d.color==='#F0A500'?'#7A5A00':'#fff';
+    const count=feedItems.filter(f=>d.key==='all'||f.dept===d.key).length;
+    return`<div class="chat-ch ${activeFeedDept===d.key?'active':''}" onclick="setActiveFeedDept('${d.key}')">
+      <div class="chat-ch-icon" style="background:${d.color};color:${fg}">${d.ic}</div>
+      <div class="chat-ch-body"><div class="chat-ch-name">${d.name}</div><div class="chat-ch-preview">${count} event${count!==1?'s':''}</div></div>
+    </div>`;
+  }).join('');
+}
+function renderFeedHeader(){
+  const el=document.getElementById('feed-main-head');if(!el)return;
+  const d=FEED_DEPTS.find(x=>x.key===activeFeedDept)||FEED_DEPTS[0];
+  const fg=d.color==='#F0A500'?'#7A5A00':'#fff';
+  const items=feedItems.filter(f=>activeFeedDept==='all'||f.dept===activeFeedDept);
+  el.innerHTML=`<div class="chat-ch-icon" style="background:${d.color};color:${fg};width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--fs);font-size:14px;font-weight:800;flex-shrink:0">${d.ic}</div>
+    <div><div class="chat-main-title">${d.name}</div><div class="chat-main-sub">${items.length} activity event${items.length!==1?'s':''}</div></div>`;
+}
+function setActiveFeedDept(dept){
+  activeFeedDept=dept;renderFeedDeptList();renderFeedHeader();renderFeed();
+}
+function renderFeed(){
+  const el=document.getElementById('feed-items');if(!el)return;
+  const items=feedItems.filter(f=>activeFeedDept==='all'||f.dept===activeFeedDept);
+  if(!items.length){el.innerHTML='<div style="text-align:center;color:var(--muted);padding:3rem 0;font-size:13px">No activity yet.</div>';return;}
+  el.innerHTML=items.map(f=>{
+    const cfg=FEED_TYPE_CFG[f.type]||FEED_TYPE_CFG.note;
+    const ts=new Date(new Date(f.created_at).toLocaleString('en-US',{timeZone:'Asia/Manila'}));
+    const timeStr=ts.toLocaleDateString('en-PH',{month:'short',day:'numeric'})+' · '+ts.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    const dept=FEED_DEPTS.find(d=>d.key===f.dept);
+    const clickFn=f.project_id?`openProjectModal('${f.project_id}','${f.dept}','view')`:`openInvModal && f.type==='inventory_alert'?'':''`;
+    const onclick=f.project_id&&f.dept&&f.dept!=='all'?`onclick="openProjectModal('${f.project_id}','${f.dept}','view')"`:f.type==='inventory_alert'?`onclick="showScreen('inventory',document.querySelector('.ni[onclick*=inventory]'))"` :'';
+    return`<div class="feed-item" ${onclick}>
+      <div class="feed-icon" style="background:${cfg.bg}"><i class="ti ${cfg.icon}" style="color:${cfg.fg}"></i></div>
+      <div class="feed-body"><div class="feed-msg">${f.message}</div><div class="feed-meta">${timeStr}${dept&&dept.key!=='all'?' · '+dept.name:''}</div></div>
+      <span class="feed-badge" style="background:${cfg.bg};color:${cfg.fg}">${cfg.label}</span>
+    </div>`;
+  }).join('');
 }
 
 // ══ CHAT ══
@@ -1002,10 +1171,11 @@ function renderDept(dept){
   const all=projects[dept];
   const active=projects[dept].filter(p=>p.status!=='Packed');
   const packed=projects[dept].filter(p=>p.status==='Packed');
+  const overdue=projects[dept].filter(p=>isOverdue(p));
   const v=deptViews[dept];
   const curTab=deptTabs[dept]||'all';
-  const tabData={all,active,packed};
-  ['all','active','packed'].forEach(tab=>{
+  const tabData={all,active,packed,overdue};
+  ['all','active','packed','overdue'].forEach(tab=>{
     const list=tabData[tab];
     const gEl=document.getElementById(`${dept}-${tab}-grid`);
     const lEl=document.getElementById(`${dept}-${tab}-list`);
@@ -1027,12 +1197,13 @@ function renderDept(dept){
 function projCardHTML(p,dept){
   const svgStr=getSvg(dept,p.colors,80,p.textVal,p.fontSize);
   const notes=p.notes?`<div class="proj-card-notes">${p.notes}</div>`:'';
+  const advBtn=STATUS_NEXT[p.status]?`<button class="proj-adv" onclick="advanceProjectStatus(event,'${p.id}','${dept}')" title="Advance to ${STATUS_NEXT[p.status]}"><i class="ti ti-chevron-right"></i></button>`:'';
   return `<div class="proj-card" data-id="${p.id}">
-    <span class="proj-card-status"><span class="jst ${stColor(p.status)}">${p.status}</span></span>
+    <span class="proj-card-status">${stBadge(p)}</span>
     <div class="proj-card-svg">${svgStr}</div>
     <div class="proj-card-name">${p.name}</div>
     <div class="proj-card-contact">${p.contact}</div>
-    ${notes}
+    ${notes}${advBtn}
   </div>`;
 }
 
@@ -1042,7 +1213,7 @@ function projListHTML(list,dept){
   const rows=list.map(p=>`<tr data-id="${p.id}">
     <td><div class="proj-list-svg">${getSvg(dept,p.colors,36,p.textVal,p.fontSize)}</div></td>
     <td><strong>${p.name}</strong><div style="font-size:10px;color:var(--muted)">${p.notes||''}</div></td>
-    <td><span class="jst ${stColor(p.status)}">${p.status}</span></td>
+    <td>${stBadge(p)}</td>
     <td>${p.status==='Packed'?(p.dateEnd||'—'):'—'}</td>
     <td>₱${(p.total||0).toLocaleString()}</td>
     <td>₱${Math.max(0,(p.total||0)-(p.dp||0)).toLocaleString()}</td>
@@ -1093,7 +1264,7 @@ function projListAllHTML(list,dept){
 function switchDeptTab(dept,tab,el){
   deptTabs[dept]=tab;
   const v=deptViews[dept];
-  ['all','active','packed'].forEach(t=>{
+  ['all','active','packed','overdue'].forEach(t=>{
     const gEl=document.getElementById(`${dept}-${t}-grid`);
     const lEl=document.getElementById(`${dept}-${t}-list`);
     if(gEl)gEl.style.display=(t===tab&&v==='grid')?'grid':'none';
@@ -1223,6 +1394,23 @@ function switchToEdit(){
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
 
+async function advanceProjectStatus(e,id,dept){
+  e.stopPropagation();
+  const idx=projects[dept].findIndex(p=>p.id===id);if(idx<0)return;
+  const p=projects[dept][idx];
+  const next=STATUS_NEXT[p.status];if(!next)return;
+  const old=p.status;
+  projects[dept][idx]={...p,status:next};
+  const{error}=await _sb.from('projects').update({status:next}).eq('id',id);
+  if(error){showToast('Update failed');projects[dept][idx]={...p};return;}
+  await Promise.all([
+    insertTimelineEntry(id,'status_change',old,next),
+    insertFeedEntry(dept,id,p.name,`${p.name} moved from ${old} to ${next}`,'status_update')
+  ]);
+  renderDept(dept);renderApparelPreview();renderDashboardStats();renderNeedsAttention();
+  if(document.getElementById('screen-chat')?.classList.contains('active'))renderFeed();
+  showToast(`${p.name} → ${next}`);
+}
 async function saveProject(){
   const cfg=DEPT_CFG[modalDept];
   const name=document.getElementById('pf-name')?.value.trim()||'';
@@ -1243,13 +1431,26 @@ async function saveProject(){
     projects[modalDept].push(pd);
     const{error}=await _sb.from('projects').insert(projectToDb(pd,modalDept));
     if(error){showToast('Save failed: '+error.message);return;}
+    await Promise.all([
+      insertTimelineEntry(pd.id,'created',null,status),
+      insertFeedEntry(modalDept,pd.id,name,`New project added: ${name}`,'created')
+    ]);
   }else{
+    const prev=projects[modalDept].find(p=>p.id===modalProjId);
+    const oldStatus=prev?.status;
     const idx=projects[modalDept].findIndex(p=>p.id===modalProjId);
     if(idx>-1)projects[modalDept][idx]={...projects[modalDept][idx],...pd};
     const{error}=await _sb.from('projects').update(projectToDb({...pd,id:modalProjId},modalDept)).eq('id',modalProjId);
     if(error){showToast('Save failed: '+error.message);return;}
+    if(oldStatus&&oldStatus!==status){
+      await Promise.all([
+        insertTimelineEntry(modalProjId,'status_change',oldStatus,status),
+        insertFeedEntry(modalDept,modalProjId,name,`${name} moved from ${oldStatus} to ${status}`,'status_update')
+      ]);
+      if(status==='Packed')await insertFeedEntry(modalDept,modalProjId,name,`${name} packed and completed ✓`,'packed');
+    }
   }
-  renderDept(modalDept);renderApparelPreview();
+  renderDept(modalDept);renderApparelPreview();renderDashboardStats();renderNeedsAttention();renderPaymentSummary();
   closeModal('proj-modal');showToast(modalMode==='add'?'Project added':'Project updated');
 }
 
@@ -1375,7 +1576,7 @@ function renderFieldsRight(dept,cfg,proj,mode){
   if(mode==='view'){
     const colorChips=cfg.zones.map(z=>{const col=proj.colors[z.key]||z.init;return `<div class="color-chip"><div class="color-chip-dot" style="background:${col}"></div><span class="color-chip-lbl">${col.toUpperCase()}</span></div>`;}).join('');
     const textInfo=(cfg.hasText&&proj.textVal)?`<div class="view-row"><label>Text / Name</label><div class="vv">${proj.textVal}</div></div>`:'';
-    right.innerHTML=`
+    const detailsHTML=`
       <div class="view-row"><label>${cfg.nameLabel}</label><div class="vv"><strong>${proj.name}</strong></div></div>
       ${textInfo}
       <div class="view-row"><label>Person in Contact</label><div class="vv">${proj.contact}</div></div>
@@ -1384,9 +1585,16 @@ function renderFieldsRight(dept,cfg,proj,mode){
       <div class="view-row"><label>Total Payment</label><div class="vv">₱${(proj.total||0).toLocaleString()}</div></div>
       <div class="view-row"><label>Downpayment</label><div class="vv">₱${(proj.dp||0).toLocaleString()}</div></div>
       <div class="view-row"><label>Balance</label><div class="vv">₱${((proj.total||0)-(proj.dp||0)).toLocaleString()}</div></div>
-      <div class="view-row"><label>Status</label><div class="vv"><span class="jst ${stColor(proj.status)}">${proj.status}</span></div></div>
+      <div class="view-row"><label>Status</label><div class="vv">${stBadge(proj)}</div></div>
       <div class="view-row"><label>Notes</label><div class="vv" style="white-space:pre-wrap">${proj.notes||'—'}</div></div>
       <div class="view-row"><label>Colors</label><div class="vv" style="padding-bottom:0;border-bottom:none"><div class="color-chips">${colorChips}</div></div></div>`;
+    right.innerHTML=`
+      <div class="tl-tab-row">
+        <div class="tl-tab active" id="modal-tab-det" onclick="switchModalTab('details')">Details</div>
+        <div class="tl-tab" id="modal-tab-tl" onclick="switchModalTab('timeline')">Timeline</div>
+      </div>
+      <div id="modal-details-pane">${detailsHTML}</div>
+      <div id="modal-timeline-pane" style="display:none"><div style="text-align:center;color:var(--muted);padding:2rem 0;font-size:13px">Loading…</div></div>`;
   } else {
     right.innerHTML=`
       <div class="mf"><label>${cfg.nameLabel}</label><input type="text" id="pf-name" value="${v('name')}" placeholder="Enter name..."></div>
