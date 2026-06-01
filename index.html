@@ -296,6 +296,22 @@ body{font-family:var(--fu);background:var(--bg);color:var(--text);min-height:100
 .inv-modal-sub{font-size:12px;color:var(--muted);margin-bottom:1.25rem;}
 .inv-modal-close{position:absolute;top:12px;right:14px;background:none;border:none;cursor:pointer;font-size:22px;color:var(--muted);}
 
+/* ── CHAT ── */
+.chat-wrap{display:flex;flex-direction:column;height:calc(100vh - 52px - 5rem);min-height:360px;}
+.chat-msgs{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:.75rem;}
+.chat-msg{display:flex;flex-direction:column;max-width:72%;}
+.chat-msg.out{align-self:flex-end;align-items:flex-end;}
+.chat-msg.in{align-self:flex-start;align-items:flex-start;}
+.chat-bubble{padding:8px 13px;border-radius:16px;font-size:13px;line-height:1.5;word-break:break-word;}
+.chat-msg.out .chat-bubble{background:var(--accent);color:#fff;border-bottom-right-radius:4px;}
+.chat-msg.in .chat-bubble{background:var(--card);border:.5px solid var(--border);color:var(--text);border-bottom-left-radius:4px;}
+.chat-meta{font-size:10px;color:var(--muted);margin-top:3px;padding:0 4px;}
+.chat-day{text-align:center;font-size:10px;color:var(--muted);padding:6px 0;letter-spacing:.5px;}
+.chat-input-row{display:flex;gap:8px;align-items:flex-end;padding-top:12px;border-top:.5px solid var(--border);}
+.chat-input-row textarea{flex:1;padding:9px 13px;border:.5px solid var(--border);border-radius:12px;font-family:var(--fu);font-size:13px;color:var(--text);background:var(--card);outline:none;resize:none;min-height:40px;max-height:120px;line-height:1.45;}
+.chat-input-row textarea:focus{border-color:var(--accent);background:#fff;}
+.chat-send{width:40px;height:40px;border-radius:12px;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;flex-shrink:0;transition:opacity .15s;}
+.chat-send:hover{opacity:.85;}
 /* ── TOAST ── */
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--nav);color:#fff;font-size:12px;padding:7px 18px;border-radius:20px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999;white-space:nowrap;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
@@ -400,6 +416,7 @@ body.staff-mode .admin-only{display:none!important;}
       <div class="ni" onclick="showScreen('apparel',this)"><i class="ti ti-shirt"></i><span class="ni-label">Apparel Preview</span></div>
       <div class="ni" onclick="showScreen('inventory',this)"><i class="ti ti-package"></i><span class="ni-label">Inventory</span><span class="nbadge">3</span></div>
       <div class="ni" onclick="showScreen('map',this)"><i class="ti ti-map"></i><span class="ni-label">Project Map</span></div>
+      <div class="ni" onclick="showScreen('chat',this)" id="nav-chat"><i class="ti ti-message-circle-2"></i><span class="ni-label">Team Chat</span></div>
       <div class="sl">Departments</div>
       <div class="ni" onclick="showScreen('jersey',this)"><span class="ddot" style="background:#E85D26"></span><span class="ni-label dl-0">Jersey Sublimation</span></div>
       <div class="ni" onclick="showScreen('dress',this)"><span class="ddot" style="background:#9B59B6"></span><span class="ni-label dl-1">Custom Dress</span></div>
@@ -629,6 +646,20 @@ body.staff-mode .admin-only{display:none!important;}
         </div>
       </div>
 
+      <!-- CHAT -->
+      <div class="screen" id="screen-chat">
+        <div class="ph">
+          <div class="ph-left"><div class="pt">Team Chat</div><div class="ps">Internal team messaging</div></div>
+        </div>
+        <div class="chat-wrap">
+          <div class="chat-msgs" id="chat-msgs"></div>
+          <div class="chat-input-row">
+            <textarea id="chat-inp" placeholder="Type a message… (Enter to send, Shift+Enter for new line)" rows="1" onkeydown="chatKeydown(event)" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+            <button class="chat-send" onclick="sendChatMessage()" title="Send"><i class="ti ti-send"></i></button>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
@@ -801,8 +832,43 @@ function showScreen(id,el){
   document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
   if(el)el.classList.add('active');
   if(id==='apparel')renderApparelPreview();
+  if(id==='chat'){renderChat();document.getElementById('nav-chat').querySelector('.nbadge')?.remove();}
   closeSidebar();
 }
+
+// ══ CHAT ══
+let chatMessages=[
+  {role:'admin',text:'Morning team! Reminder: Warriors set deadline is June 12. Let\'s stay on track. 💪',time:'08:30 AM'},
+  {role:'staff',text:'Noted! We\'re currently at 60% on cutting. Should finish by EOD.',time:'08:35 AM'},
+  {role:'admin',text:'Good. Make sure sublimation colors match the approved palette — QC before packing.',time:'08:37 AM'},
+  {role:'staff',text:'Will do. Also, we\'re running low on Chiffon fabric for the Flores Wedding order.',time:'08:42 AM'},
+  {role:'admin',text:'I\'ll order from Fabric Lane today. Thanks for the heads up!',time:'08:44 AM'},
+];
+function renderChat(){
+  const cont=document.getElementById('chat-msgs');if(!cont)return;
+  let html=`<div class="chat-day">Today · ${new Date().toLocaleDateString('en-PH',{month:'long',day:'numeric',year:'numeric'})}</div>`;
+  html+=chatMessages.map(m=>{
+    const isOut=m.role===currentRole;
+    const who=isOut?'You':(m.role==='admin'?'Admin':'Staff');
+    return`<div class="chat-msg ${isOut?'out':'in'}">
+      <div class="chat-bubble">${m.text.replace(/</g,'&lt;')}</div>
+      <div class="chat-meta">${who} · ${m.time}</div>
+    </div>`;
+  }).join('');
+  cont.innerHTML=html;
+  cont.scrollTop=cont.scrollHeight;
+}
+function sendChatMessage(){
+  const inp=document.getElementById('chat-inp');
+  const text=inp.value.trim();if(!text)return;
+  const now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Manila'}));
+  const h=now.getHours(),mn=now.getMinutes(),ap=h>=12?'PM':'AM',h12=h%12||12;
+  const time=`${String(h12).padStart(2,'0')}:${String(mn).padStart(2,'0')} ${ap}`;
+  chatMessages.push({role:currentRole,text,time});
+  inp.value='';inp.style.height='auto';
+  renderChat();
+}
+function chatKeydown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendChatMessage();}}
 
 // ══ CLOCK ══
 function startClock(){tick();setInterval(tick,1000);}
