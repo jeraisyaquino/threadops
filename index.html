@@ -422,7 +422,7 @@ body{font-family:var(--fu);background:var(--bg);color:var(--text);min-height:100
 .tl-tab{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--muted);transition:all .15s;}
 .tl-tab.active{background:var(--nav);color:#fff;border-color:var(--nav);}
 /* ── TOAST ── */
-.toast{position:fixed;top:64px;right:1.25rem;transform:translateY(-6px);background:var(--nav);color:#fff;font-size:12px;padding:7px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999;white-space:nowrap;box-shadow:0 4px 16px rgba(26,39,68,0.22);font-weight:500;border:1px solid rgba(255,255,255,0.08);}
+.toast{position:fixed;top:64px;right:1.25rem;transform:translateY(-8px);background:var(--card);border:1px solid var(--border);color:var(--text);font-size:13px;padding:11px 14px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .22s,transform .22s;z-index:9999;min-width:260px;max-width:380px;box-shadow:0 8px 24px rgba(26,39,68,0.13);}
 .toast.show{opacity:1;transform:translateY(0);}
 
 /* ── ADMIN/STAFF ── */
@@ -933,7 +933,16 @@ const ACC_SWS=['#E85D26','#E83232','#F0A500','#2E8B57','#9B59B6','#1A6FA8','#E91
 function dk(hex){const n=parseInt(hex.replace('#',''),16);return '#'+[((n>>16)&255),((n>>8)&255),(n&255)].map(v=>Math.max(0,Math.round(v*.8)).toString(16).padStart(2,'0')).join('');}
 function contrastColor(hex){const n=parseInt(hex.replace('#',''),16);const r=(n>>16)&255,g=(n>>8)&255,b=n&255;return(0.299*r+0.587*g+0.114*b)/255>0.5?'#111':'#FFF';}
 function uid(){return '_'+Math.random().toString(36).slice(2,9);}
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+function showToast(msg,opts){
+  const t=document.getElementById('toast');
+  if(opts){
+    const{icon='ti-info-circle',iconBg='#F0F1F5',iconColor='#7A8099',subtitle='',badge='',badgeBg='',badgeColor=''}=opts;
+    t.innerHTML=`<div style="display:flex;align-items:center;gap:10px"><div style="width:34px;height:34px;border-radius:9px;background:${iconBg};display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="ti ${icon}" style="color:${iconColor};font-size:15px"></i></div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:600;color:var(--text)">${msg}</div>${subtitle?`<div style="font-size:11px;color:var(--muted);margin-top:1px">${subtitle}</div>`:''}</div>${badge?`<span style="background:${badgeBg};color:${badgeColor};font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;white-space:nowrap;flex-shrink:0">${badge}</span>`:''}</div>`;
+  }else{
+    t.innerHTML=`<div style="font-size:13px;color:var(--text)">${msg}</div>`;
+  }
+  t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2800);
+}
 function stColor(s){const m={'In Queue':'st-qu','On-going':'st-on','Finishing':'st-fi','QC & Packed':'st-pk','Delivered':'st-dv'};return m[s]||'st-qu';}
 function isOverdue(p){
   if(p.status==='Delivered'||p.status==='QC & Packed'||!p.dateEnd)return false;
@@ -1095,7 +1104,7 @@ async function loadAllData(){
       }
     }
     setupChannels();
-  }catch(e){console.error(e);showToast('Could not load data');}
+  }catch(e){console.error(e);showToast('Could not load data',{icon:'ti-alert-circle',iconBg:'#FDECEA',iconColor:'#C0392B'});}
 }
 
 const SVGS={
@@ -1152,7 +1161,7 @@ function switchRole(){
   const _sb2=document.getElementById('sw-btn-el');if(_sb2)_sb2.title=currentRole==='admin'?'Switch to Staff':'Switch to Admin';
   document.getElementById('tb-user').textContent=currentRole==='admin'?'AD':'ST';
   renderApparelPreview();
-  showToast('Switched to '+(currentRole==='admin'?'Admin':'Staff')+' view');
+  showToast('Switched to '+(currentRole==='admin'?'Admin':'Staff')+' view',{icon:'ti-refresh',iconBg:'rgba(26,39,68,0.08)',iconColor:'#1A2744'});
 }
 
 // ══ SIDEBAR MOBILE ══
@@ -1768,7 +1777,7 @@ async function advanceProjectStatus(e,id,dept,toStatus){
   ]);
   renderDept(dept);renderApparelPreview();renderDashboardStats();renderNeedsAttention();
   if(document.getElementById('screen-chat')?.classList.contains('active'))renderFeed();
-  showToast(`${p.name} → ${next}`);
+  showToast(p.name+' → '+next,{icon:'ti-arrow-right',iconBg:'#FEF0E9',iconColor:'#E85D26',subtitle:next});
 }
 async function saveProject(){
   const cfg=DEPT_CFG[modalDept];
@@ -1789,7 +1798,7 @@ async function saveProject(){
     pd.id=crypto.randomUUID();
     projects[modalDept].push(pd);
     const{error}=await _sb.from('projects').insert(projectToDb(pd,modalDept));
-    if(error){showToast('Save failed: '+error.message);return;}
+    if(error){showToast('Save failed: '+error.message,{icon:'ti-alert-circle',iconBg:'#FDECEA',iconColor:'#C0392B'});return;}
     await Promise.all([
       insertTimelineEntry(pd.id,'order_received',null,'Order Received'),
       insertFeedEntry(modalDept,pd.id,name,`New project added: ${name}`,'created')
@@ -1800,7 +1809,7 @@ async function saveProject(){
     const idx=projects[modalDept].findIndex(p=>p.id===modalProjId);
     if(idx>-1)projects[modalDept][idx]={...projects[modalDept][idx],...pd};
     const{error}=await _sb.from('projects').update(projectToDb({...pd,id:modalProjId},modalDept)).eq('id',modalProjId);
-    if(error){showToast('Save failed: '+error.message);return;}
+    if(error){showToast('Save failed: '+error.message,{icon:'ti-alert-circle',iconBg:'#FDECEA',iconColor:'#C0392B'});return;}
     if(oldStatus&&oldStatus!==status){
       await Promise.all([
         insertTimelineEntry(modalProjId,'status_change',oldStatus,status),
@@ -1810,7 +1819,7 @@ async function saveProject(){
     }
   }
   renderDept(modalDept);renderApparelPreview();renderDashboardStats();renderNeedsAttention();renderPaymentSummary();
-  closeModal('proj-modal');showToast(modalMode==='add'?'Project added':'Project updated');
+  closeModal('proj-modal');showToast(modalMode==='add'?'Project added: '+pd.name:'Project updated: '+pd.name,{icon:modalMode==='add'?'ti-circle-plus':'ti-circle-check',iconBg:'#E9F5EE',iconColor:'#2E8B57',badge:modalMode==='add'?'New':'Saved',badgeBg:'#E9F5EE',badgeColor:'#2E8B57'});
 }
 
 // ══ PALETTE LEFT ══
@@ -1919,7 +1928,7 @@ async function pmSavePreset(){
   if(customPresets[modalDept].find(x=>x.label===name)){showToast('Name already exists');return;}
   const cfg=DEPT_CFG[modalDept];const colors=cfg.zones.map(z=>modalPalState[z.key]||z.init);
   const{data,error}=await _sb.from('custom_presets').insert({dept:modalDept,label:name,colors}).select().single();
-  if(error){showToast('Save failed: '+error.message);return;}
+  if(error){showToast('Save failed: '+error.message,{icon:'ti-alert-circle',iconBg:'#FDECEA',iconColor:'#C0392B'});return;}
   const p={id:data.id,label:name,c:colors};
   customPresets[modalDept].push(p);
   const cust=document.getElementById('pm-pcust');const empty=document.getElementById('pm-empty');if(empty)empty.remove();
@@ -2050,10 +2059,10 @@ async function saveInvItem(){
     stock:parseFloat(document.getElementById('inv-stock').value)||0,min_stock:parseFloat(document.getElementById('inv-min').value)||0,
     supplier:document.getElementById('inv-supplier').value.trim(),dept:document.getElementById('inv-dept').value,notes:document.getElementById('inv-notes').value.trim()};
   const{error}=editId?await _sb.from('inventory').update(item).eq('id',editId):await _sb.from('inventory').insert(item);
-  if(error){showToast('Save failed: '+error.message);return;}
+  if(error){showToast('Save failed: '+error.message,{icon:'ti-alert-circle',iconBg:'#FDECEA',iconColor:'#C0392B'});return;}
   const{data:all}=await _sb.from('inventory').select('*').order('created_at');
   inventoryItems=all||[];renderInventory(inventoryItems);
-  closeModal('inv-modal');showToast(editId?'Item updated':'Item added: '+name);
+  closeModal('inv-modal');showToast(editId?'Item updated: '+name:'Item added: '+name,{icon:editId?'ti-edit':'ti-circle-plus',iconBg:'#EBF4FF',iconColor:'#2563EB',badge:editId?'Updated':'New',badgeBg:'#EBF4FF',badgeColor:'#2563EB'});
 }
 async function deleteInvItem(){
   const editId=document.getElementById('inv-editing-id').value;if(!editId)return;
