@@ -1863,7 +1863,7 @@ const INV_FORM_HTML=`
   </div>
   <div class="mf-row">
     <div class="mf"><label>Current Stock</label><input type="number" id="inv-stock" min="0" placeholder="0"></div>
-    <div class="mf"><label>Minimum Stock</label><input type="number" id="inv-min" min="0" placeholder="0"></div>
+    <div class="mf"><label><i class="ti ti-alert-triangle" style="color:#E85D26;font-size:11px;margin-right:3px"></i>Low Stock Threshold</label><input type="number" id="inv-min" min="0" placeholder="e.g. 5"><div style="font-size:10px;color:var(--muted);margin-top:3px">Warn when stock drops below this</div></div>
   </div>
   <div class="mf"><label>Supplier / Source</label><input type="text" id="inv-supplier" placeholder="Supplier name or store"></div>
   <div class="mf"><label>Department Used In</label><select id="inv-dept"><option>All Departments</option><option>Jersey Sublimation</option><option>Custom Dress</option><option>Merchandise</option><option>Scrub Suits</option></select></div>
@@ -1879,7 +1879,7 @@ function openInvModal(id){
       <div class="view-row"><label>Category</label><div class="vv">${item.category}</div></div>
       <div class="view-row"><label>Unit</label><div class="vv">${item.unit}</div></div>
       <div class="view-row"><label>Current Stock</label><div class="vv">${item.stock} ${item.unit}</div></div>
-      <div class="view-row"><label>Minimum Stock</label><div class="vv">${item.min_stock} ${item.unit}</div></div>
+      <div class="view-row"><label>Low Stock Threshold</label><div class="vv">${item.min_stock||0} ${item.unit} ${(item.stock||0)<(item.min_stock||0)?'<span style="color:#E24B4A;font-size:11px;margin-left:4px">⚠ Below threshold</span>':(item.stock||0)<(item.min_stock||0)*1.5&&(item.min_stock||0)>0?'<span style="color:#F0A500;font-size:11px;margin-left:4px">⚠ Running low</span>':''}</div></div>
       <div class="view-row"><label>Supplier</label><div class="vv">${item.supplier||'—'}</div></div>
       <div class="view-row"><label>Department</label><div class="vv">${item.dept||'—'}</div></div>
       <div class="view-row"><label>Notes</label><div class="vv">${item.notes||'—'}</div></div>`;
