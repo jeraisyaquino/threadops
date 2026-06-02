@@ -979,9 +979,15 @@ function setupChannels(){
   console.log('[RT] setupChannels called');
   _projChannel=_rtSb.channel('rt-projects')
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'projects'},payload=>{
-      console.log('[RT] INSERT received',payload);
-      const p=dbToProject(payload.new);
-      if(projects[p.dept]&&!projects[p.dept].find(x=>x.id===p.id)){projects[p.dept].push(p);refreshProjectViews();}
+      console.log('[RT] INSERT raw new:',JSON.stringify(payload.new));
+      try{
+        const p=dbToProject(payload.new);
+        const arr=projects[p.dept];
+        const already=arr&&arr.find(x=>x.id===p.id);
+        console.log('[RT] dept:',p.dept,'arr?',!!arr,'len:',arr?.length,'already:',!!already);
+        if(arr&&!already){arr.push(p);refreshProjectViews();console.log('[RT] applied!');}
+        else console.log('[RT] skipped');
+      }catch(e){console.error('[RT] error:',e);}
     })
     .on('postgres_changes',{event:'UPDATE',schema:'public',table:'projects'},payload=>{
       console.log('[RT] UPDATE received',payload);
