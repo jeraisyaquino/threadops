@@ -422,8 +422,8 @@ body{font-family:var(--fu);background:var(--bg);color:var(--text);min-height:100
 .tl-tab{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--muted);transition:all .15s;}
 .tl-tab.active{background:var(--nav);color:#fff;border-color:var(--nav);}
 /* ── TOAST ── */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--nav);color:#fff;font-size:13px;padding:8px 20px;border-radius:20px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999;white-space:nowrap;box-shadow:0 4px 16px rgba(26,39,68,0.25);font-weight:500;}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast{position:fixed;top:64px;right:1.25rem;transform:translateY(-6px);background:var(--nav);color:#fff;font-size:12px;padding:7px 16px;border-radius:10px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:9999;white-space:nowrap;box-shadow:0 4px 16px rgba(26,39,68,0.22);font-weight:500;border:1px solid rgba(255,255,255,0.08);}
+.toast.show{opacity:1;transform:translateY(0);}
 
 /* ── ADMIN/STAFF ── */
 .admin-only{display:block;}
