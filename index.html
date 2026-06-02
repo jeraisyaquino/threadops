@@ -864,7 +864,7 @@ body.staff-mode .admin-only{display:none!important;}
 const _SB_URL='https://tvcuibxqgppqxydjkuhp.supabase.co';
 const _SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2Y3VpYnhxZ3BwcXh5ZGprdWhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMjQzMTUsImV4cCI6MjA5NTkwMDMxNX0.tWnICanhliDcfx3r1xW0_xXf8VOWAWE63k2fbvAtPe0';
 const _sb=supabase.createClient(_SB_URL,_SB_KEY);
-const _rtSb=supabase.createClient(_SB_URL,_SB_KEY);
+const _rtSb=supabase.createClient(_SB_URL,_SB_KEY,{auth:{storageKey:'sb-rt',persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
 // ══════════════════════════════════
 // DATA & SVG
 // ══════════════════════════════════
