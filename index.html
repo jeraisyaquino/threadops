@@ -162,10 +162,11 @@ body{font-family:var(--fu);background:var(--bg);color:var(--text);min-height:100
 .proj-list-svg{display:flex;justify-content:center;}
 
 /* ── INVENTORY ── */
-.ig{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:1.375rem;}
-.ic{background:var(--card);border-radius:var(--radius);padding:1rem 1.125rem;border:1px solid rgba(26,39,68,0.05);box-shadow:var(--shadow-sm);}
-.it{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
-.iq{font-family:var(--fs);font-size:26px;font-weight:800;margin-bottom:6px;}
+.ig{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;margin-bottom:1.375rem;}
+.ic{background:var(--card);border-radius:var(--radius);padding:.7rem .85rem;border:1px solid rgba(26,39,68,0.05);box-shadow:var(--shadow-sm);}
+.ic.ic-cr{border-color:#E24B4A;background:#fff8f8;}.ic.ic-lw{border-color:var(--accent2);}
+.it{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.iq{font-family:var(--fs);font-size:22px;font-weight:800;margin-bottom:5px;}
 .stbar{height:7px;background:#EAECF0;border-radius:20px;overflow:hidden;}
 .stfill{height:100%;border-radius:20px;}
 .stfill.ok{background:#2E8B57;}.stfill.lw{background:var(--accent2);}.stfill.cr{background:#E24B4A;}
@@ -581,7 +582,7 @@ body.staff-mode .admin-only{display:none!important;}
       <div class="sl">Main</div>
       <div class="ni active" onclick="showScreen('dashboard',this)"><i class="ti ti-layout-dashboard"></i><span class="ni-label">Dashboard</span></div>
       <div class="ni" onclick="showScreen('apparel',this)"><i class="ti ti-shirt"></i><span class="ni-label">Apparel Preview</span></div>
-      <div class="ni" onclick="showScreen('inventory',this)"><i class="ti ti-package"></i><span class="ni-label">Inventory</span><span class="nbadge">3</span></div>
+      <div class="ni" onclick="showScreen('inventory',this)"><i class="ti ti-package"></i><span class="ni-label">Inventory</span><span class="nbadge" id="inv-badge" style="display:none"></span></div>
       <div class="ni" onclick="showScreen('map',this)"><i class="ti ti-map"></i><span class="ni-label">Project Map</span></div>
       <div class="ni" onclick="showScreen('chat',this)" id="nav-chat"><i class="ti ti-activity"></i><span class="ni-label">Activity</span></div>
       <div class="sl">Departments</div>
@@ -904,6 +905,7 @@ function renderDashboardStats(){
   const lowStock=inventoryItems.filter(i=>(i.stock||0)<(i.min_stock||0)).length;
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
   set('stat-active',active);set('stat-packed',packed);set('stat-overdue',overdue);set('stat-lowstock',lowStock);
+  const ibadge=document.getElementById('inv-badge');if(ibadge){ibadge.textContent=lowStock;ibadge.style.display=lowStock>0?'':'none';}
   const os=document.getElementById('stat-overdue-sub');if(os)os.textContent=overdue>0?'⚠ Needs action':'';
 }
 function renderPaymentSummary(){
@@ -961,9 +963,11 @@ function invCardHTML(i){
   const pct=min>0?Math.min(100,Math.round((stock/min)*100)):100;
   const cls=stock<min?'cr':stock<min*1.5?'lw':'ok';
   const lbl=stock<min?'Critical':stock<min*1.5?'Low':'OK';
-  const sty=cls==='cr'?'style="background:#FDECEA;color:#C0392B"':'';
+  const sty=cls==='cr'?'style="background:#FDECEA;color:#C0392B"':cls==='lw'?'style="background:#FEF7E6;color:#7A5A00"':'';
   const bcls=cls==='ok'?'st-pk':cls==='lw'?'st-fi':'';
-  return `<div class="ic" style="cursor:pointer" onclick="openInvModal('${i.id}')"><div class="it"><div><div style="font-size:12px;font-weight:500">${i.name}</div><div style="font-size:10px;color:var(--muted)">${i.category} · ${i.unit}</div></div><span class="jst ${bcls}" ${sty}>${lbl}</span></div><div class="iq">${stock} ${i.unit}</div><div class="stbar"><div class="stfill ${cls}" style="width:${Math.min(pct,100)}%"></div></div><div class="ifoot"><span>Min: ${min} ${i.unit}</span><span>${i.supplier||'—'}</span></div></div>`;
+  const warn=cls==='cr'?'<i class="ti ti-alert-triangle" style="color:#E24B4A;font-size:12px;margin-right:3px"></i>':cls==='lw'?'<i class="ti ti-alert-circle" style="color:var(--accent2);font-size:12px;margin-right:3px"></i>':'';
+  const icls='ic'+(cls==='cr'?' ic-cr':cls==='lw'?' ic-lw':'');
+  return `<div class="${icls}" style="cursor:pointer" onclick="openInvModal('${i.id}')"><div class="it"><div><div style="font-size:12px;font-weight:600">${warn}${i.name}</div><div style="font-size:10px;color:var(--muted);margin-top:1px">${i.category} · ${i.unit}</div></div><span class="jst ${bcls}" ${sty}>${lbl}</span></div><div class="iq">${stock} <span style="font-size:13px;font-weight:500;color:var(--muted)">${i.unit}</span></div><div class="stbar"><div class="stfill ${cls}" style="width:${Math.min(pct,100)}%"></div></div><div class="ifoot"><span>Min: ${min} ${i.unit}</span><span>${i.supplier||'—'}</span></div></div>`;
 }
 function renderInventory(items){
   const cont=document.getElementById('inv-content');if(!cont)return;
