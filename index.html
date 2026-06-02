@@ -975,6 +975,9 @@ function renderInventory(items){
   if(consumables.length)html+=`<div class="stitle">Consumables</div><div class="ig">${consumables.map(invCardHTML).join('')}</div>`;
   cont.innerHTML=html;
 }
+function refreshProjectViews(){
+  renderDashboardStats();renderPaymentSummary();renderNeedsAttention();renderApparelPreview();
+}
 async function loadAllData(){
   try{
     const[{data:pr,error:pe},{data:cr,error:ce},{data:ir,error:ie},{data:fr,error:fe}]=await Promise.all([
@@ -1005,6 +1008,25 @@ async function loadAllData(){
           else{const nav=document.getElementById('nav-chat');if(nav&&!nav.querySelector('.nbadge'))nav.insertAdjacentHTML('beforeend','<span class="nbadge">!</span>');}
         }).subscribe();
     }
+    if(!_projChannel){
+      _projChannel=_sb.channel('public:projects')
+        .on('postgres_changes',{event:'INSERT',schema:'public',table:'projects'},payload=>{
+          const p=dbToProject(payload.new);
+          if(projects[p.dept])projects[p.dept].push(p);
+          refreshProjectViews();
+        })
+        .on('postgres_changes',{event:'UPDATE',schema:'public',table:'projects'},payload=>{
+          const p=dbToProject(payload.new);
+          if(projects[p.dept]){const i=projects[p.dept].findIndex(x=>x.id===p.id);if(i>-1)projects[p.dept][i]=p;else projects[p.dept].push(p);}
+          refreshProjectViews();
+        })
+        .on('postgres_changes',{event:'DELETE',schema:'public',table:'projects'},payload=>{
+          const {id,dept}=payload.old;
+          if(projects[dept])projects[dept]=projects[dept].filter(x=>x.id!==id);
+          refreshProjectViews();
+        })
+        .subscribe();
+    }
   }catch(e){console.error(e);showToast('Could not load data');}
 }
 
@@ -1029,7 +1051,7 @@ const DEPT_CFG={
 let projects={jersey:[],dress:[],merch:[],scrub:[]};
 
 let dressStyleIdx=0,currentRole='admin',modalMode='add',modalDept='jersey',modalProjId=null,modalPalState={},customPresets={},inventoryItems=[],chatMessages=[],_chatChannel=null;
-let feedItems=[],activeFeedDept='all',_feedChannel=null;
+let feedItems=[],activeFeedDept='all',_feedChannel=null,_projChannel=null;
 const deptTabs={jersey:'all',dress:'all',merch:'all',scrub:'all'};
 const deptViews={jersey:'grid',dress:'grid',merch:'grid',scrub:'grid'};
 let apparelView='grid',apparelTab='all';
@@ -1172,7 +1194,11 @@ function closeTl(){document.getElementById('tl-ov').classList.remove('open');}
 document.addEventListener('click',e=>{if(e.target===document.getElementById('tl-ov'))closeTl();});
 async function load(){const{data}=await _sb.from('projects').select('*').eq('dept',DEPT).order('created_at');projects=data||[];render();}
 load();
-_sb.channel('board:${dept}').on('postgres_changes',{event:'UPDATE',schema:'public',table:'projects'},p=>{const i=projects.findIndex(x=>x.id===p.new.id);if(i>-1){projects[i]={...projects[i],...p.new};render();}}).subscribe();
+_sb.channel('board:${dept}')
+  .on('postgres_changes',{event:'INSERT',schema:'public',table:'projects'},p=>{if(p.new.dept===DEPT){projects.push(p.new);render();}})
+  .on('postgres_changes',{event:'UPDATE',schema:'public',table:'projects'},p=>{const i=projects.findIndex(x=>x.id===p.new.id);if(i>-1){projects[i]={...projects[i],...p.new};render();}})
+  .on('postgres_changes',{event:'DELETE',schema:'public',table:'projects'},p=>{projects=projects.filter(x=>x.id!==p.old.id);render();})
+  .subscribe();
 <\/script></body></html>`);win.document.close();
 }
 
