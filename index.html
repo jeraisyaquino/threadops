@@ -450,11 +450,19 @@ body.staff-mode .admin-only{display:none!important;}
 }
 
 /* ── THEME TOGGLE BUTTON ── */
-.theme-toggle{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.12);color:#fff;font-size:12px;font-family:var(--fu);cursor:pointer;transition:all .15s;flex-shrink:0;white-space:nowrap;}
+.theme-toggle{display:flex!important;align-items:center;gap:6px;padding:6px 13px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:12px;font-family:var(--fu);font-weight:600;cursor:pointer;transition:all .15s;flex-shrink:0;white-space:nowrap;box-shadow:0 2px 6px rgba(232,93,38,0.4);}
 .theme-toggle i{font-size:14px;}
-.theme-toggle:hover{background:rgba(255,255,255,0.22);border-color:rgba(255,255,255,0.4);}
-[data-theme="dark"] .theme-toggle{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);}
-[data-theme="dark"] .theme-toggle:hover{background:rgba(255,255,255,0.18);}
+.theme-toggle:hover{opacity:.88;transform:translateY(-1px);}
+[data-theme="dark"] .theme-toggle{background:var(--accent);}
+/* Theme toggle in settings */
+.theme-setting-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
+.theme-setting-row:last-child{border-bottom:none;}
+.theme-setting-label{font-size:13px;font-weight:500;color:var(--text);}
+.theme-setting-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.theme-big-toggle{display:flex;gap:8px;}
+.tbt{padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-size:12px;font-weight:500;cursor:pointer;font-family:var(--fu);transition:all .15s;display:flex;align-items:center;gap:5px;}
+.tbt.active{background:var(--nav);color:#fff;border-color:var(--nav);}
+.tbt:hover:not(.active){background:var(--bg);}
 
 /* ════════════════════════════════
    DARK MODE
@@ -739,6 +747,16 @@ body.staff-mode .admin-only{display:none!important;}
       <!-- SETTINGS -->
       <div class="screen admin-only" id="screen-settings">
         <div class="ph"><div class="ph-left"><div class="pt">Settings</div><div class="ps">Admin configuration</div></div></div>
+        <div class="scard" style="margin-bottom:14px">
+          <div class="sct">Appearance</div>
+          <div class="theme-setting-row">
+            <div><div class="theme-setting-label">Color Mode</div><div class="theme-setting-sub">Choose between light and dark interface</div></div>
+            <div class="theme-big-toggle">
+              <button class="tbt" id="tbt-light" onclick="setTheme('light')"><i class="ti ti-sun"></i> Light</button>
+              <button class="tbt" id="tbt-dark" onclick="setTheme('dark')"><i class="ti ti-moon"></i> Dark</button>
+            </div>
+          </div>
+        </div>
         <div class="sg2">
           <div class="scard"><div class="sct">Rename Departments</div><div id="rename-wrap"></div></div>
           <div class="scard">
@@ -1944,21 +1962,26 @@ function applyTheme(){
 }
 
 // ── DARK / LIGHT MODE ──
-function toggleTheme(){
-  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
-  const t=isDark?'light':'dark';
+function setTheme(t){
   document.documentElement.setAttribute('data-theme',t);
   localStorage.setItem('theme',t);
   _syncThemeBtn(t);
   showToast(t==='dark'?'Dark mode on':'Light mode on');
+}
+function toggleTheme(){
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  setTheme(isDark?'light':'dark');
 }
 function _syncThemeBtn(t){
   const icon=document.getElementById('theme-icon');
   const lbl=document.getElementById('theme-label');
   if(icon)icon.className=t==='dark'?'ti ti-sun':'ti ti-moon';
   if(lbl)lbl.textContent=t==='dark'?'Light':'Dark';
+  const bl=document.getElementById('tbt-light'),bd=document.getElementById('tbt-dark');
+  if(bl)bl.classList.toggle('active',t==='light');
+  if(bd)bd.classList.toggle('active',t==='dark');
 }
-// Sync button state on load
+// Sync on load
 (function(){
   const t=localStorage.getItem('theme')||'light';
   document.documentElement.setAttribute('data-theme',t);
