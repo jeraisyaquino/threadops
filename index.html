@@ -304,10 +304,38 @@ body{font-family:var(--fu);background:var(--bg);color:var(--text);min-height:100
 .inv-modal-close:hover{background:var(--nav);color:#fff;}
 
 /* ── CHAT ── */
-.chat-screen{display:flex;height:calc(100vh - 56px - 3rem);max-width:900px;background:var(--card);border-radius:var(--radius);border:1px solid rgba(26,39,68,0.05);overflow:hidden;box-shadow:var(--shadow-sm);}
-.chat-sidebar{width:220px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--bg);}
+.chat-screen{display:flex;height:calc(100vh - 56px - 3rem);background:var(--card);border-radius:var(--radius);border:1px solid rgba(26,39,68,0.05);overflow:hidden;box-shadow:var(--shadow-sm);}
+.chat-sidebar{width:210px;flex-shrink:0;border-right:1px solid var(--border);display:flex;flex-direction:column;background:var(--bg);}
 .chat-sidebar-head{padding:16px 14px 10px;font-family:var(--fs);font-size:16px;font-weight:800;letter-spacing:.5px;color:var(--text);flex-shrink:0;}
 .chat-ch-list{flex:1;overflow-y:auto;padding:0 6px 6px;}
+/* Archive panel */
+.act-archive{width:270px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:var(--card);}
+.arc-head{padding:12px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.arc-title{font-family:var(--fs);font-size:14px;font-weight:800;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.arc-filters{display:flex;gap:4px;flex-wrap:wrap;}
+.arc-f{border:1px solid var(--border);background:var(--bg);color:var(--muted);font-size:11px;padding:3px 9px;border-radius:20px;cursor:pointer;font-family:var(--fu);font-weight:500;transition:all .12s;}
+.arc-f.active,.arc-f:hover{background:var(--nav);color:#fff;border-color:var(--nav);}
+.arc-custom{display:none;align-items:center;gap:6px;margin-top:8px;}
+.arc-custom input{border:1px solid var(--border);border-radius:7px;padding:4px 7px;font-size:11px;color:var(--text);background:var(--bg);flex:1;}
+.arc-list{flex:1;overflow-y:auto;padding:10px 10px;}
+.arc-item{display:flex;align-items:flex-start;gap:9px;padding:9px 10px;border-radius:9px;cursor:pointer;border:1px solid var(--border);margin-bottom:6px;background:var(--card);transition:all .12s;}
+.arc-item:hover{background:var(--bg);border-color:rgba(26,39,68,.15);}
+.arc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.arc-body{flex:1;min-width:0;}
+.arc-name{font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.arc-meta{font-size:10px;color:var(--muted);margin-top:2px;}
+.arc-dept{font-size:10px;font-weight:600;margin-top:1px;}
+.arc-bal{font-size:11px;font-weight:700;color:var(--text);white-space:nowrap;margin-left:auto;flex-shrink:0;}
+.arc-empty{text-align:center;color:var(--muted);padding:2.5rem 1rem;font-size:12px;line-height:1.6;}
+/* Tab bar (mobile/tablet only) */
+.act-tabbar{display:none;border-bottom:1px solid var(--border);background:var(--card);flex-shrink:0;}
+.act-tab{flex:1;padding:11px 8px;border:none;background:transparent;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;border-bottom:2px solid transparent;transition:all .15s;}
+.act-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+/* Dept chips (mobile/tablet only) */
+.act-chips{display:none;overflow-x:auto;gap:6px;padding:8px 12px;border-bottom:1px solid var(--border);flex-shrink:0;scrollbar-width:none;}
+.act-chips::-webkit-scrollbar{display:none;}
+.act-chip{border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:11px;padding:4px 11px;border-radius:20px;cursor:pointer;white-space:nowrap;font-weight:500;font-family:var(--fu);transition:all .12s;flex-shrink:0;}
+.act-chip.active{color:#fff;border-color:transparent;}
 .chat-ch{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer;transition:background .12s;}
 .chat-ch:hover{background:rgba(26,39,68,.07);}
 .chat-ch.active{background:var(--nav);}
@@ -336,7 +364,15 @@ body{font-family:var(--fu);background:var(--bg);color:var(--text);min-height:100
 .chat-input-row textarea:focus{border-color:var(--accent);background:#fff;}
 .chat-send{width:42px;height:42px;border-radius:12px;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;flex-shrink:0;transition:all .15s;box-shadow:0 2px 8px rgba(232,93,38,0.3);}
 .chat-send:hover{opacity:.85;transform:translateY(-1px);}
-@media(max-width:768px){.chat-sidebar{width:180px;}.chat-screen{height:calc(100vh - 56px - 2.5rem);}}
+@media(max-width:768px){
+  #screen-chat.active{display:flex;flex-direction:column;padding:0;height:calc(100vh - 56px);}
+  .act-tabbar{display:flex;}
+  .act-chips{display:flex;}
+  .chat-screen{flex:1;height:auto;border-radius:0;border:none;box-shadow:none;max-width:100%;}
+  .chat-sidebar{display:none;}
+  .act-archive{width:auto;border-left:none;border-top:1px solid var(--border);}
+  .act-pane-off{display:none!important;}
+}
 /* ── STATUS BADGES ── */
 .st-ov{background:#FDECEA;color:#C0392B;}
 .st-dv{background:#E8EBF3;color:#1A2744;}
@@ -816,14 +852,37 @@ body.staff-mode .admin-only{display:none!important;}
 
       <!-- ACTIVITY FEED -->
       <div class="screen" id="screen-chat">
+        <div class="act-tabbar">
+          <button class="act-tab active" id="act-tab-feed" onclick="switchActTab('feed')"><i class="ti ti-activity"></i> Activity</button>
+          <button class="act-tab" id="act-tab-archive" onclick="switchActTab('archive')"><i class="ti ti-archive"></i> Archive</button>
+        </div>
         <div class="chat-screen">
           <div class="chat-sidebar">
             <div class="chat-sidebar-head">Departments</div>
             <div class="chat-ch-list" id="feed-dept-list"></div>
           </div>
-          <div class="chat-main">
+          <div class="chat-main" id="act-pane-feed">
+            <div class="act-chips" id="act-chips"></div>
             <div class="chat-main-head" id="feed-main-head"></div>
             <div class="chat-msgs" id="feed-items" style="gap:0;background:#fafaf8;padding:14px 12px;"></div>
+          </div>
+          <div class="act-archive" id="act-pane-archive">
+            <div class="arc-head">
+              <div class="arc-title"><i class="ti ti-archive"></i>Delivered Archive</div>
+              <div class="arc-filters">
+                <button class="arc-f" onclick="setArcFilter(this,'today')">Today</button>
+                <button class="arc-f" onclick="setArcFilter(this,'yesterday')">Yesterday</button>
+                <button class="arc-f active" onclick="setArcFilter(this,'7days')">Last 7 Days</button>
+                <button class="arc-f" onclick="setArcFilter(this,'month')">This Month</button>
+                <button class="arc-f" onclick="setArcFilter(this,'custom')">Custom</button>
+              </div>
+              <div class="arc-custom" id="arc-custom">
+                <input type="date" id="arc-from" onchange="renderArchive()">
+                <span style="color:var(--muted)">–</span>
+                <input type="date" id="arc-to" onchange="renderArchive()">
+              </div>
+            </div>
+            <div class="arc-list" id="arc-list"></div>
           </div>
         </div>
       </div>
@@ -1014,7 +1073,7 @@ function setupChannels(){
     .subscribe();
 }
 function refreshProjectViews(){
-  renderDashboardStats();renderPaymentSummary();renderNeedsAttention();renderApparelPreview();renderAllDepts();
+  renderDashboardStats();renderPaymentSummary();renderNeedsAttention();renderApparelPreview();renderAllDepts();renderArchive();
 }
 async function loadAllData(){
   try{
@@ -1088,6 +1147,7 @@ async function selectRole(r){
   await loadAllData();
   renderAllDepts();renderApparelPreview();
   renderDashboardStats();renderNeedsAttention();renderPaymentSummary();
+  renderActChips();renderArchive();
 }
 function switchRole(){
   currentRole=currentRole==='admin'?'staff':'admin';
@@ -1118,7 +1178,7 @@ function showScreen(id,el){
   if(id==='apparel')renderApparelPreview();
   if(id==='dashboard'){renderDashboardStats();renderNeedsAttention();renderPaymentSummary();}
   if(id==='chat'){
-    renderFeedDeptList();renderFeedHeader();renderFeed();
+    renderFeedDeptList();renderFeedHeader();renderFeed();renderActChips();renderArchive();
     const b=document.getElementById('nav-chat').querySelector('.nbadge');if(b)b.remove();
   }
   closeSidebar();
@@ -1254,7 +1314,7 @@ function renderFeedHeader(){
     <div><div class="chat-main-title">${d.name}</div><div class="chat-main-sub">${items.length} activity event${items.length!==1?'s':''}</div></div>`;
 }
 function setActiveFeedDept(dept){
-  activeFeedDept=dept;renderFeedDeptList();renderFeedHeader();renderFeed();
+  activeFeedDept=dept;renderFeedDeptList();renderFeedHeader();renderFeed();renderActChips();
 }
 function renderFeed(){
   const el=document.getElementById('feed-items');if(!el)return;
@@ -1275,6 +1335,69 @@ function renderFeed(){
   }).join('');
 }
 
+// ══ ARCHIVE ══
+const DC={jersey:'#E85D26',dress:'#9B59B6',merch:'#F0A500',scrub:'#2E8B57'};
+const DN={jersey:'Jersey Sub.',dress:'Custom Dress',merch:'Merchandise',scrub:'Scrub Suits'};
+let arcFilter='7days';
+function setArcFilter(btn,f){
+  arcFilter=f;
+  document.querySelectorAll('.arc-f').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('arc-custom').style.display=f==='custom'?'flex':'none';
+  if(f!=='custom')renderArchive();
+}
+function renderArchive(){
+  const el=document.getElementById('arc-list');if(!el)return;
+  const now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Manila'}));
+  const pad=n=>String(n).padStart(2,'0');
+  const toStr=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const todayStr=toStr(now);
+  const yest=new Date(now);yest.setDate(now.getDate()-1);const yesterdayStr=toStr(yest);
+  const ago7=new Date(now);ago7.setDate(now.getDate()-6);const ago7Str=toStr(ago7);
+  const monthStr=`${now.getFullYear()}-${pad(now.getMonth()+1)}`;
+  const all=[];
+  Object.entries(projects).forEach(([dept,projs])=>{
+    projs.filter(p=>p.status==='Delivered').forEach(p=>all.push({...p,_dept:dept}));
+  });
+  const match=p=>{
+    const d=p.dateEnd||'';
+    switch(arcFilter){
+      case 'today':return d===todayStr;
+      case 'yesterday':return d===yesterdayStr;
+      case '7days':return d>=ago7Str&&d<=todayStr;
+      case 'month':return d.startsWith(monthStr);
+      case 'custom':{const f=document.getElementById('arc-from')?.value,t=document.getElementById('arc-to')?.value;return(!f||d>=f)&&(!t||d<=t);}
+    }
+    return false;
+  };
+  const filtered=all.filter(match).sort((a,b)=>(b.dateEnd||'').localeCompare(a.dateEnd||''));
+  if(!filtered.length){el.innerHTML='<div class="arc-empty">No delivered orders<br>for this period</div>';return;}
+  const dc=DC,dn=DN;
+  el.innerHTML=filtered.map(p=>{
+    const col=dc[p._dept]||'#7A8099';
+    const bal=(p.total||0)-(p.dp||0);
+    return`<div class="arc-item" onclick="openProjectModal('${p.id}','${p._dept}','view')"><div class="arc-dot" style="background:${col}"></div><div class="arc-body"><div class="arc-name">${p.name}</div><div class="arc-meta">${p.contact||'—'} · ${p.dateEnd||'No date'}</div><div class="arc-dept" style="color:${col}">${dn[p._dept]||p._dept}</div></div>${bal>0?`<div class="arc-bal">₱${bal.toLocaleString()}</div>`:''}</div>`;
+  }).join('');
+}
+let activeActTab='feed';
+function switchActTab(tab){
+  activeActTab=tab;
+  document.getElementById('act-tab-feed').classList.toggle('active',tab==='feed');
+  document.getElementById('act-tab-archive').classList.toggle('active',tab==='archive');
+  if(window.innerWidth<=768){
+    document.getElementById('act-pane-feed').classList.toggle('act-pane-off',tab!=='feed');
+    document.getElementById('act-pane-archive').classList.toggle('act-pane-off',tab!=='archive');
+  }
+  if(tab==='archive')renderArchive();
+}
+function renderActChips(){
+  const el=document.getElementById('act-chips');if(!el)return;
+  el.innerHTML=FEED_DEPTS.map(d=>{
+    const active=activeFeedDept===d.key;
+    const fg=d.color==='#F0A500'?'#7A5A00':'#fff';
+    return`<button class="act-chip${active?' active':''}" style="${active?'background:'+d.color+';color:'+fg+';border-color:'+d.color:''}" onclick="setActiveFeedDept('${d.key}')">${d.name}</button>`;
+  }).join('');
+}
 // ══ CHAT ══
 const CHANNELS=[
   {key:'general', name:'General',            color:'#1A2744', ic:'G'},
