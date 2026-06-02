@@ -309,7 +309,7 @@ body{font-family:var(--fu);background:var(--bg);color:var(--text);min-height:100
 .chat-sidebar-head{padding:16px 14px 10px;font-family:var(--fs);font-size:16px;font-weight:800;letter-spacing:.5px;color:var(--text);flex-shrink:0;}
 .chat-ch-list{flex:1;overflow-y:auto;padding:0 6px 6px;}
 /* Archive panel */
-.act-archive{width:270px;flex-shrink:0;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:var(--card);}
+.act-archive{flex:1;min-width:0;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:var(--card);}
 .arc-head{padding:12px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
 .arc-title{font-family:var(--fs);font-size:14px;font-weight:800;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
 .arc-filters{display:flex;gap:4px;flex-wrap:wrap;}
@@ -317,16 +317,16 @@ body{font-family:var(--fu);background:var(--bg);color:var(--text);min-height:100
 .arc-f.active,.arc-f:hover{background:var(--nav);color:#fff;border-color:var(--nav);}
 .arc-custom{display:none;align-items:center;gap:6px;margin-top:8px;}
 .arc-custom input{border:1px solid var(--border);border-radius:7px;padding:4px 7px;font-size:11px;color:var(--text);background:var(--bg);flex:1;}
-.arc-list{flex:1;overflow-y:auto;padding:10px 10px;}
-.arc-item{display:flex;align-items:flex-start;gap:9px;padding:9px 10px;border-radius:9px;cursor:pointer;border:1px solid var(--border);margin-bottom:6px;background:var(--card);transition:all .12s;}
-.arc-item:hover{background:var(--bg);border-color:rgba(26,39,68,.15);}
-.arc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;}
-.arc-body{flex:1;min-width:0;}
-.arc-name{font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.arc-meta{font-size:10px;color:var(--muted);margin-top:2px;}
-.arc-dept{font-size:10px;font-weight:600;margin-top:1px;}
-.arc-bal{font-size:11px;font-weight:700;color:var(--text);white-space:nowrap;margin-left:auto;flex-shrink:0;}
-.arc-empty{text-align:center;color:var(--muted);padding:2.5rem 1rem;font-size:12px;line-height:1.6;}
+.arc-list{flex:1;overflow-y:auto;padding:10px 12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;align-content:start;}
+.arc-item{display:flex;flex-direction:column;border-radius:12px;cursor:pointer;border:1px solid var(--border);background:var(--card);transition:all .12s;overflow:hidden;}
+.arc-item:hover{box-shadow:var(--shadow-sm);border-color:rgba(26,39,68,.18);transform:translateY(-1px);}
+.arc-svg-wrap{display:flex;align-items:center;justify-content:center;padding:12px 8px 6px;background:var(--bg);}
+.arc-info{padding:8px 10px 10px;}
+.arc-name{font-size:12px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.arc-date{font-size:10px;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:3px;}
+.arc-notes{font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.arc-dept{font-size:10px;font-weight:600;margin-top:4px;}
+.arc-empty{text-align:center;color:var(--muted);padding:2.5rem 1rem;font-size:12px;line-height:1.6;grid-column:1/-1;}
 /* Tab bar (mobile/tablet only) */
 .act-tabbar{display:none;border-bottom:1px solid var(--border);background:var(--card);flex-shrink:0;}
 .act-tab{flex:1;padding:11px 8px;border:none;background:transparent;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;border-bottom:2px solid transparent;transition:all .15s;}
@@ -854,7 +854,7 @@ body.staff-mode .admin-only{display:none!important;}
       <div class="screen" id="screen-chat">
         <div class="act-tabbar">
           <button class="act-tab active" id="act-tab-feed" onclick="switchActTab('feed')"><i class="ti ti-activity"></i> Activity</button>
-          <button class="act-tab" id="act-tab-archive" onclick="switchActTab('archive')"><i class="ti ti-archive"></i> Archive</button>
+          <button class="act-tab" id="act-tab-archive" onclick="switchActTab('archive')"><i class="ti ti-package-check"></i> Delivered</button>
         </div>
         <div class="chat-screen">
           <div class="chat-sidebar">
@@ -868,11 +868,12 @@ body.staff-mode .admin-only{display:none!important;}
           </div>
           <div class="act-archive" id="act-pane-archive">
             <div class="arc-head">
-              <div class="arc-title"><i class="ti ti-archive"></i>Delivered Archive</div>
+              <div class="arc-title"><i class="ti ti-package-check"></i>Delivered Orders</div>
               <div class="arc-filters">
+                <button class="arc-f active" onclick="setArcFilter(this,'all')">All</button>
                 <button class="arc-f" onclick="setArcFilter(this,'today')">Today</button>
                 <button class="arc-f" onclick="setArcFilter(this,'yesterday')">Yesterday</button>
-                <button class="arc-f active" onclick="setArcFilter(this,'7days')">Last 7 Days</button>
+                <button class="arc-f" onclick="setArcFilter(this,'7days')">Last 7 Days</button>
                 <button class="arc-f" onclick="setArcFilter(this,'month')">This Month</button>
                 <button class="arc-f" onclick="setArcFilter(this,'custom')">Custom</button>
               </div>
@@ -1338,7 +1339,7 @@ function renderFeed(){
 // ══ ARCHIVE ══
 const DC={jersey:'#E85D26',dress:'#9B59B6',merch:'#F0A500',scrub:'#2E8B57'};
 const DN={jersey:'Jersey Sub.',dress:'Custom Dress',merch:'Merchandise',scrub:'Scrub Suits'};
-let arcFilter='7days';
+let arcFilter='all';
 function setArcFilter(btn,f){
   arcFilter=f;
   document.querySelectorAll('.arc-f').forEach(b=>b.classList.remove('active'));
@@ -1361,6 +1362,8 @@ function renderArchive(){
   });
   const match=p=>{
     const d=p.dateEnd||'';
+    if(arcFilter==='all')return true;
+    if(!d)return true; // no date set — always show in any filter
     switch(arcFilter){
       case 'today':return d===todayStr;
       case 'yesterday':return d===yesterdayStr;
@@ -1372,11 +1375,21 @@ function renderArchive(){
   };
   const filtered=all.filter(match).sort((a,b)=>(b.dateEnd||'').localeCompare(a.dateEnd||''));
   if(!filtered.length){el.innerHTML='<div class="arc-empty">No delivered orders<br>for this period</div>';return;}
-  const dc=DC,dn=DN;
   el.innerHTML=filtered.map(p=>{
-    const col=dc[p._dept]||'#7A8099';
-    const bal=(p.total||0)-(p.dp||0);
-    return`<div class="arc-item" onclick="openProjectModal('${p.id}','${p._dept}','view')"><div class="arc-dot" style="background:${col}"></div><div class="arc-body"><div class="arc-name">${p.name}</div><div class="arc-meta">${p.contact||'—'} · ${p.dateEnd||'No date'}</div><div class="arc-dept" style="color:${col}">${dn[p._dept]||p._dept}</div></div>${bal>0?`<div class="arc-bal">₱${bal.toLocaleString()}</div>`:''}</div>`;
+    const col=DC[p._dept]||'#7A8099';
+    const dn=DN[p._dept]||p._dept;
+    const svg=getSvg(p._dept,p.colors,56,p.textVal,p.fontSize)||'';
+    const dateLabel=p.dateEnd?new Date(p.dateEnd+'T00:00:00').toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}):'No date';
+    const pcs=p.notes||'';
+    return`<div class="arc-item" onclick="openProjectModal('${p.id}','${p._dept}','view')">
+      <div class="arc-svg-wrap">${svg}</div>
+      <div class="arc-info">
+        <div class="arc-name">${p.name}</div>
+        <div class="arc-date"><i class="ti ti-calendar-check" style="font-size:9px"></i>${dateLabel}</div>
+        ${pcs?`<div class="arc-notes">${pcs}</div>`:''}
+        <div class="arc-dept" style="color:${col}">${dn}</div>
+      </div>
+    </div>`;
   }).join('');
 }
 let activeActTab='feed';
