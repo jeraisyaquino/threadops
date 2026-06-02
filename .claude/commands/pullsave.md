@@ -8,4 +8,10 @@ Steps:
 5. Show `git log --oneline -5` so the user can see recent history
 6. Confirm what was restored: the latest commit hash, message, and timestamp
 
+7. Check for `.claude/work-context.md`:
+   - If it exists, read it and display its contents under a "--- Resuming from last session ---" header
+   - Then ask the user: "Would you like me to continue from where we left off?" and wait for their response
+   - If they say yes, pick up the next steps listed in the context file and proceed with them
+   - If the context file does not exist, fall back to showing the last 3 commit messages as context clues and say: "No saved context found — here are the most recent commits as a reference"
+
 If no savepoint tags exist, just do a `git pull origin master` and note that no tagged savepoints were found.
