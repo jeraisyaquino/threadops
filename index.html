@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>ThreadOps</title>
+<script>!function(){var t=localStorage.getItem('theme');if(t==='dark')document.documentElement.setAttribute('data-theme','dark');}();</script>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
@@ -446,6 +447,83 @@ body.staff-mode .admin-only{display:none!important;}
   .ig{grid-template-columns:1fr;}
   .sg{grid-template-columns:1fr 1fr;}
 }
+
+/* ── THEME TOGGLE BUTTON ── */
+.theme-toggle{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.75);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .15s;flex-shrink:0;}
+.theme-toggle:hover{background:rgba(255,255,255,0.15);color:#fff;}
+
+/* ════════════════════════════════
+   DARK MODE
+════════════════════════════════ */
+[data-theme="dark"]{
+  --bg:#0D1117;--card:#161C2C;--text:#E2E8F5;--muted:#8B97B0;
+  --border:rgba(255,255,255,0.08);--nav:#0A1020;
+  --shadow-sm:0 1px 4px rgba(0,0,0,0.4),0 4px 16px rgba(0,0,0,0.25);
+  --shadow-md:0 8px 24px rgba(0,0,0,0.5),0 2px 6px rgba(0,0,0,0.3);
+}
+/* icon bg tints */
+[data-theme="dark"] .si.or{background:rgba(232,93,38,0.2);}
+[data-theme="dark"] .si.nv{background:rgba(100,130,200,0.15);}
+[data-theme="dark"] .si.gd{background:rgba(240,165,0,0.18);}
+[data-theme="dark"] .si.gn{background:rgba(46,139,87,0.18);}
+/* status badges */
+[data-theme="dark"] .st-on{background:rgba(232,93,38,0.18);color:#FF9568;}
+[data-theme="dark"] .st-fi{background:rgba(240,165,0,0.18);color:#F5C518;}
+[data-theme="dark"] .st-pk{background:rgba(46,139,87,0.18);color:#5EC98B;}
+[data-theme="dark"] .st-qu{background:rgba(139,151,176,0.12);color:#8B97B0;}
+[data-theme="dark"] .st-ov{background:rgba(226,75,74,0.2);color:#F87171;}
+[data-theme="dark"] .st-dv{background:rgba(100,120,180,0.12);color:#8B97B0;}
+/* tables */
+[data-theme="dark"] .proj-list thead tr{background:rgba(255,255,255,0.03);}
+[data-theme="dark"] .proj-list tr:hover td{background:rgba(255,255,255,0.04);}
+/* buttons */
+[data-theme="dark"] .btn-o{background:rgba(255,255,255,0.05);}
+[data-theme="dark"] .btn-o:hover{background:rgba(255,255,255,0.08);}
+[data-theme="dark"] .btn-icon{background:rgba(255,255,255,0.05);}
+/* tabs */
+[data-theme="dark"] .tab-btn,[data-theme="dark"] .dtab{background:var(--card);}
+[data-theme="dark"] .tab-btn:hover:not(.active),[data-theme="dark"] .dtab:hover:not(.active){background:rgba(255,255,255,0.06);color:var(--text);}
+/* dept card rows */
+[data-theme="dark"] .jr{background:rgba(255,255,255,0.04);}
+/* palette */
+[data-theme="dark"] .cz{border-color:rgba(255,255,255,0.08);}
+[data-theme="dark"] .cz:hover{background:rgba(255,255,255,0.04);}
+[data-theme="dark"] .cz.active{background:rgba(232,93,38,0.12);}
+[data-theme="dark"] .pk-drawer{background:rgba(255,255,255,0.04);}
+[data-theme="dark"] .pk-top input[type=text]{background:rgba(255,255,255,0.06);color:var(--text);}
+[data-theme="dark"] .pc{background:var(--card);}
+[data-theme="dark"] .save-inp{background:var(--card);}
+[data-theme="dark"] .sbtn{background:rgba(255,255,255,0.06);color:var(--text);}
+/* map flow nodes */
+[data-theme="dark"] .fn.or{background:rgba(232,93,38,0.18);}
+[data-theme="dark"] .fn.nv{background:rgba(100,130,200,0.12);}
+[data-theme="dark"] .fn.gd{background:rgba(240,165,0,0.15);}
+[data-theme="dark"] .fn.gn{background:rgba(46,139,87,0.15);}
+/* modal */
+[data-theme="dark"] .modal-overlay{background:rgba(0,0,0,0.75);}
+/* attention items */
+[data-theme="dark"] .attn-item{background:var(--card);}
+[data-theme="dark"] .attn-item:hover{background:rgba(255,255,255,0.04);}
+/* activity feed */
+[data-theme="dark"] .feed-item:hover{background:rgba(255,255,255,0.04);border-color:rgba(255,255,255,0.1);}
+/* fields */
+[data-theme="dark"] .mf input:focus,[data-theme="dark"] .mf select:focus,[data-theme="dark"] .mf textarea:focus{background:rgba(255,255,255,0.06);}
+[data-theme="dark"] .sf input:focus,[data-theme="dark"] .rin input:focus{background:rgba(255,255,255,0.06);}
+[data-theme="dark"] .p-field textarea:focus{background:rgba(255,255,255,0.06);}
+[data-theme="dark"] .chat-input-row textarea:focus,[data-theme="dark"] .save-inp:focus{background:rgba(255,255,255,0.06);}
+[data-theme="dark"] .logo-area{border-color:rgba(255,255,255,0.1);}
+/* view rows */
+[data-theme="dark"] .view-row .vv{border-bottom-color:rgba(255,255,255,0.08);}
+[data-theme="dark"] .color-chip{background:rgba(255,255,255,0.06);}
+/* timeline */
+[data-theme="dark"] .tl::before{background:rgba(255,255,255,0.1);}
+/* chat */
+[data-theme="dark"] .chat-msgs{background:#090E18;}
+[data-theme="dark"] .chat-sidebar{background:rgba(255,255,255,0.03);}
+[data-theme="dark"] .chat-msg.in .chat-bubble{background:#1E2535;border-color:rgba(255,255,255,0.08);}
+/* settings swatches */
+[data-theme="dark"] .sw.on{border-color:var(--text);}
+[data-theme="dark"] .tc.on{border-color:var(--text);}
 </style>
 </head>
 <body>
@@ -469,11 +547,12 @@ body.staff-mode .admin-only{display:none!important;}
       <button class="hamburger" onclick="toggleSidebar()"><i class="ti ti-menu-2"></i></button>
       <div class="tb-logo" onclick="showScreen('dashboard')">
         <img id="logo-img" src="" alt="">
-        <div class="tb-name" id="brand-name">THREAD<span>OPS</span></div>
+        <div class="tb-name" id="brand-name">DRESSUP <span>PH</span></div>
       </div>
     </div>
     <div class="tb-right">
       <div class="clk"><span id="clk-icon">☀️</span><div><div class="clk-time" id="clk">--:-- --</div><div class="clk-lbl">PH TIME (UTC+8)</div></div></div>
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode"><i class="ti ti-moon" id="theme-icon"></i></button>
       <button class="sw-btn" onclick="switchRole()"><i class="ti ti-refresh"></i><span class="sw-btn-text" id="sw-lbl">Switch to Staff</span></button>
       <div class="tb-user" id="tb-user">AD</div>
     </div>
@@ -666,7 +745,7 @@ body.staff-mode .admin-only{display:none!important;}
             </div>
             <div class="sf" id="brand-name-section">
               <label>Company Name</label>
-              <input type="text" id="company-inp" value="ThreadOps Apparel Co." oninput="updateBrand(this.value)">
+              <input type="text" id="company-inp" value="DRESSUP PH" oninput="updateBrand(this.value)">
             </div>
             <div class="sf" id="brand-logo-section" style="display:none">
               <label>Company Logo</label>
@@ -1800,7 +1879,7 @@ function setBrandMode(mode){
   }
 }
 function updateBrand(val){
-  document.getElementById('brand-name').innerHTML=val||'THREAD<span style="color:var(--accent)">OPS</span>';
+  document.getElementById('brand-name').innerHTML=val||'DRESSUP <span style="color:var(--accent)">PH</span>';
 }
 function handleLogo(e){
   const f=e.target.files[0];if(!f)return;
@@ -1831,7 +1910,7 @@ function saveBranding(){
 }
 function loadBranding(){
   const mode=localStorage.getItem('brandMode')||'name';
-  const name=localStorage.getItem('brandName')||'ThreadOps Apparel Co.';
+  const name=localStorage.getItem('brandName')||'DRESSUP PH';
   const logo=localStorage.getItem('brandLogo');
   const inp=document.getElementById('company-inp');if(inp)inp.value=name;
   if(mode==='logo'&&logo){
@@ -1859,6 +1938,24 @@ function applyTheme(){
   const n=document.getElementById('nav-pk').value,a=document.getElementById('acc-pk').value;
   document.documentElement.style.setProperty('--nav',n);document.documentElement.style.setProperty('--accent',a);showToast('Theme applied');
 }
+
+// ── DARK / LIGHT MODE ──
+function toggleTheme(){
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const t=isDark?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  localStorage.setItem('theme',t);
+  const icon=document.getElementById('theme-icon');
+  if(icon)icon.className=t==='dark'?'ti ti-sun':'ti ti-moon';
+  showToast(t==='dark'?'Dark mode on':'Light mode on');
+}
+// Sync icon on load
+(function(){
+  const t=localStorage.getItem('theme')||'light';
+  document.documentElement.setAttribute('data-theme',t);
+  const icon=document.getElementById('theme-icon');
+  if(icon)icon.className=t==='dark'?'ti ti-sun':'ti ti-moon';
+})();
 </script>
 </body>
 </html>
