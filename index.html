@@ -975,33 +975,34 @@ function renderInventory(items){
   if(consumables.length)html+=`<div class="stitle">Consumables</div><div class="ig">${consumables.map(invCardHTML).join('')}</div>`;
   cont.innerHTML=html;
 }
+function rtRowToProject(row){
+  return{id:row.id,dept:row.dept,name:row.name,contact:row.contact||'',phone:row.phone||'',
+    dateStart:row.date_start,dateEnd:row.date_end,total:row.total||0,dp:row.dp||0,
+    status:row.status||'In Queue',notes:row.notes||'',
+    colors:typeof row.colors==='string'?JSON.parse(row.colors):(row.colors||{}),
+    textVal:row.text_val||'',fontSize:row.font_size||7};
+}
 function setupChannels(){
-  console.log('[RT] setupChannels called');
   _projChannel=_rtSb.channel('rt-projects')
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'projects'},payload=>{
-      console.log('[RT] INSERT raw new:',JSON.stringify(payload.new));
-      try{
-        const p=dbToProject(payload.new);
-        const arr=projects[p.dept];
-        const already=arr&&arr.find(x=>x.id===p.id);
-        console.log('[RT] dept:',p.dept,'arr?',!!arr,'len:',arr?.length,'already:',!!already);
-        if(arr&&!already){arr.push(p);refreshProjectViews();console.log('[RT] applied!');}
-        else console.log('[RT] skipped');
-      }catch(e){console.error('[RT] error:',e);}
+      const row=payload.new,dept=row.dept,id=row.id;
+      if(!dept||!projects[dept]||projects[dept].find(x=>x.id===id))return;
+      projects[dept].push(rtRowToProject(row));refreshProjectViews();
     })
     .on('postgres_changes',{event:'UPDATE',schema:'public',table:'projects'},payload=>{
-      console.log('[RT] UPDATE received',payload);
-      const p=dbToProject(payload.new);
-      if(projects[p.dept]){const i=projects[p.dept].findIndex(x=>x.id===p.id);if(i>-1){projects[p.dept][i]=p;refreshProjectViews();}}
+      const row=payload.new,dept=row.dept;
+      if(!dept||!projects[dept])return;
+      const i=projects[dept].findIndex(x=>x.id===row.id);
+      if(i>-1){projects[dept][i]=rtRowToProject(row);refreshProjectViews();}
     })
     .on('postgres_changes',{event:'DELETE',schema:'public',table:'projects'},payload=>{
       const id=payload.old.id,dept=payload.old.dept;
       if(projects[dept]){projects[dept]=projects[dept].filter(x=>x.id!==id);refreshProjectViews();}
     })
-    .subscribe((status,err)=>{console.log('[RT] projects status:',status,err||'');});
+    .subscribe();
   _feedChannel=_rtSb.channel('rt-feed')
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'activity_feed'},payload=>{
-      feedItems.unshift(payload.new);
+      const f=payload.new;feedItems.unshift({id:f.id,dept:f.dept,project_id:f.project_id,project_name:f.project_name,message:f.message,type:f.type,created_at:f.created_at});
       if(document.getElementById('screen-chat')?.classList.contains('active'))renderFeed();
       else{const nav=document.getElementById('nav-chat');if(nav&&!nav.querySelector('.nbadge'))nav.insertAdjacentHTML('beforeend','<span class="nbadge">!</span>');}
     })
