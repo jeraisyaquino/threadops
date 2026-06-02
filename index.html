@@ -399,6 +399,7 @@ body.staff-mode .admin-only{display:none!important;}
   :root{--sw:240px;}
   .hamburger{display:flex;}
   .sw-btn .sw-btn-text{display:none;}
+  #theme-label{display:none;}
   .clk-lbl{display:none;}
   .clk{padding:3px 8px;}
 
@@ -449,8 +450,11 @@ body.staff-mode .admin-only{display:none!important;}
 }
 
 /* ── THEME TOGGLE BUTTON ── */
-.theme-toggle{width:32px;height:32px;border-radius:8px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.75);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .15s;flex-shrink:0;}
-.theme-toggle:hover{background:rgba(255,255,255,0.15);color:#fff;}
+.theme-toggle{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.12);color:#fff;font-size:12px;font-family:var(--fu);cursor:pointer;transition:all .15s;flex-shrink:0;white-space:nowrap;}
+.theme-toggle i{font-size:14px;}
+.theme-toggle:hover{background:rgba(255,255,255,0.22);border-color:rgba(255,255,255,0.4);}
+[data-theme="dark"] .theme-toggle{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);}
+[data-theme="dark"] .theme-toggle:hover{background:rgba(255,255,255,0.18);}
 
 /* ════════════════════════════════
    DARK MODE
@@ -552,7 +556,7 @@ body.staff-mode .admin-only{display:none!important;}
     </div>
     <div class="tb-right">
       <div class="clk"><span id="clk-icon">☀️</span><div><div class="clk-time" id="clk">--:-- --</div><div class="clk-lbl">PH TIME (UTC+8)</div></div></div>
-      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode"><i class="ti ti-moon" id="theme-icon"></i></button>
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()"><i class="ti ti-moon" id="theme-icon"></i><span id="theme-label">Dark</span></button>
       <button class="sw-btn" onclick="switchRole()"><i class="ti ti-refresh"></i><span class="sw-btn-text" id="sw-lbl">Switch to Staff</span></button>
       <div class="tb-user" id="tb-user">AD</div>
     </div>
@@ -1945,16 +1949,22 @@ function toggleTheme(){
   const t=isDark?'light':'dark';
   document.documentElement.setAttribute('data-theme',t);
   localStorage.setItem('theme',t);
-  const icon=document.getElementById('theme-icon');
-  if(icon)icon.className=t==='dark'?'ti ti-sun':'ti ti-moon';
+  _syncThemeBtn(t);
   showToast(t==='dark'?'Dark mode on':'Light mode on');
 }
-// Sync icon on load
+function _syncThemeBtn(t){
+  const icon=document.getElementById('theme-icon');
+  const lbl=document.getElementById('theme-label');
+  if(icon)icon.className=t==='dark'?'ti ti-sun':'ti ti-moon';
+  if(lbl)lbl.textContent=t==='dark'?'Light':'Dark';
+}
+// Sync button state on load
 (function(){
   const t=localStorage.getItem('theme')||'light';
   document.documentElement.setAttribute('data-theme',t);
-  const icon=document.getElementById('theme-icon');
-  if(icon)icon.className=t==='dark'?'ti ti-sun':'ti ti-moon';
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>_syncThemeBtn(t));
+  }else{_syncThemeBtn(t);}
 })();
 </script>
 </body>
