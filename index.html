@@ -976,37 +976,29 @@ function renderInventory(items){
   cont.innerHTML=html;
 }
 function setupChannels(){
-  // Projects channel — INSERT/UPDATE/DELETE with auto-reconnect
   if(_projChannel){try{_sb.removeChannel(_projChannel);}catch(e){}_projChannel=null;}
   _projChannel=_sb.channel('rt-projects')
-    .on('postgres_changes',{event:'*',schema:'public',table:'projects'},payload=>{
-      const t=payload.eventType;
-      if(t==='INSERT'){
-        const p=dbToProject(payload.new);
-        // dedup: saveProject() already pushes locally, skip if already present
-        if(projects[p.dept]&&!projects[p.dept].find(x=>x.id===p.id)){projects[p.dept].push(p);refreshProjectViews();}
-      }else if(t==='UPDATE'){
-        const p=dbToProject(payload.new);
-        if(projects[p.dept]){const i=projects[p.dept].findIndex(x=>x.id===p.id);if(i>-1){projects[p.dept][i]=p;refreshProjectViews();}}
-      }else if(t==='DELETE'){
-        const{id,dept}=payload.old;
-        if(projects[dept]){projects[dept]=projects[dept].filter(x=>x.id!==id);refreshProjectViews();}
-      }
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'projects'},({new:row})=>{
+      const p=dbToProject(row);
+      if(projects[p.dept]&&!projects[p.dept].find(x=>x.id===p.id)){projects[p.dept].push(p);refreshProjectViews();}
     })
-    .subscribe((status)=>{
-      if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED')setTimeout(setupChannels,3000);
-    });
-  // Feed channel
+    .on('postgres_changes',{event:'UPDATE',schema:'public',table:'projects'},({new:row})=>{
+      const p=dbToProject(row);
+      if(projects[p.dept]){const i=projects[p.dept].findIndex(x=>x.id===p.id);if(i>-1){projects[p.dept][i]=p;refreshProjectViews();}}
+    })
+    .on('postgres_changes',{event:'DELETE',schema:'public',table:'projects'},({old:row})=>{
+      const{id,dept}=row;
+      if(projects[dept]){projects[dept]=projects[dept].filter(x=>x.id!==id);refreshProjectViews();}
+    })
+    .subscribe();
   if(_feedChannel){try{_sb.removeChannel(_feedChannel);}catch(e){}_feedChannel=null;}
   _feedChannel=_sb.channel('rt-feed')
-    .on('postgres_changes',{event:'INSERT',schema:'public',table:'activity_feed'},payload=>{
-      feedItems.unshift(payload.new);
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'activity_feed'},({new:row})=>{
+      feedItems.unshift(row);
       if(document.getElementById('screen-chat')?.classList.contains('active'))renderFeed();
       else{const nav=document.getElementById('nav-chat');if(nav&&!nav.querySelector('.nbadge'))nav.insertAdjacentHTML('beforeend','<span class="nbadge">!</span>');}
     })
-    .subscribe((status)=>{
-      if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED')setTimeout(setupChannels,3000);
-    });
+    .subscribe();
 }
 function refreshProjectViews(){
   renderDashboardStats();renderPaymentSummary();renderNeedsAttention();renderApparelPreview();
