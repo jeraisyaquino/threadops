@@ -46,9 +46,9 @@ body{font-family:var(--fu);background:var(--bg);color:var(--text);min-height:100
 .clk{background:rgba(255,255,255,0.07);border-radius:8px;padding:4px 12px;display:flex;align-items:center;gap:7px;border:1px solid rgba(255,255,255,0.08);}
 .clk-time{font-family:var(--fs);font-size:17px;font-weight:700;color:#fff;line-height:1;}
 .clk-lbl{font-size:9px;color:rgba(255,255,255,0.4);margin-top:1px;letter-spacing:.5px;}
-.sw-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.18);background:transparent;color:rgba(255,255,255,0.75);font-size:12px;cursor:pointer;font-family:var(--fu);transition:all .15s;white-space:nowrap;}
-.sw-btn:hover{background:rgba(255,255,255,0.1);color:#fff;border-color:rgba(255,255,255,0.3);}
-.tb-user{width:32px;height:32px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--fs);font-size:13px;font-weight:700;color:#fff;flex-shrink:0;}
+.sw-btn{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:9px;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.75);font-size:16px;cursor:pointer;transition:all .15s;flex-shrink:0;padding:0;}
+.sw-btn:hover{background:rgba(255,255,255,0.14);color:#fff;border-color:rgba(255,255,255,0.25);}
+.tb-user{width:34px;height:34px;border-radius:9px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:var(--fs);font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
 .hamburger{display:none;background:none;border:none;cursor:pointer;padding:4px;color:#fff;font-size:22px;}
 
 /* ── LAYOUT ── */
@@ -436,14 +436,11 @@ body.staff-mode .admin-only{display:none!important;}
 @media(max-width:768px){
   :root{--sw:240px;}
   .hamburger{display:flex;}
-  .sw-btn .sw-btn-text{display:none;}
-  #theme-label{display:none;}
   .clk-lbl{display:none;}
   .clk{padding:3px 8px;}
   .topbar{padding:0 .75rem;}
-  .tb-right{gap:7px;}
+  .tb-right{gap:6px;}
   .tb-name{font-size:16px;max-width:100px;}
-  .theme-toggle{padding:5px 8px;}
   .clk-time{font-size:14px;}
 
   .sidebar{position:fixed;top:56px;left:0;bottom:0;z-index:260;transform:translateX(-100%);}
@@ -493,10 +490,9 @@ body.staff-mode .admin-only{display:none!important;}
 }
 
 /* ── THEME TOGGLE BUTTON ── */
-.theme-toggle{display:flex!important;align-items:center;gap:6px;padding:6px 13px;border-radius:8px;border:none;background:var(--accent);color:#fff;font-size:12px;font-family:var(--fu);font-weight:600;cursor:pointer;transition:all .15s;flex-shrink:0;white-space:nowrap;box-shadow:0 2px 6px rgba(232,93,38,0.4);}
-.theme-toggle i{font-size:14px;}
-.theme-toggle:hover{opacity:.88;transform:translateY(-1px);}
-[data-theme="dark"] .theme-toggle{background:var(--accent);}
+.theme-toggle{display:flex!important;align-items:center;justify-content:center;width:34px;height:34px;border-radius:9px;border:1px solid rgba(255,255,255,0.14);background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.75);font-size:16px;cursor:pointer;transition:all .15s;flex-shrink:0;padding:0;}
+.theme-toggle:hover{background:rgba(255,255,255,0.14);color:#fff;border-color:rgba(255,255,255,0.25);}
+[data-theme="dark"] .theme-toggle{background:rgba(255,255,255,0.07);}
 /* Theme toggle in settings */
 .theme-setting-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);}
 .theme-setting-row:last-child{border-bottom:none;}
@@ -606,9 +602,9 @@ body.staff-mode .admin-only{display:none!important;}
       </div>
     </div>
     <div class="tb-right">
-      <div class="clk"><span id="clk-icon">☀️</span><div><div class="clk-time" id="clk">--:-- --</div><div class="clk-lbl">PH TIME (UTC+8)</div></div></div>
-      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()"><i class="ti ti-moon" id="theme-icon"></i><span id="theme-label">Dark</span></button>
-      <button class="sw-btn" onclick="switchRole()"><i class="ti ti-refresh"></i><span class="sw-btn-text" id="sw-lbl">Switch to Staff</span></button>
+      <div class="clk"><div><div class="clk-time" id="clk">--:-- --</div><div class="clk-lbl">PH TIME (UTC+8)</div></div></div>
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme"><i class="ti ti-moon" id="theme-icon"></i></button>
+      <button class="sw-btn" onclick="switchRole()" id="sw-btn-el" title="Switch role"><i class="ti ti-refresh" id="sw-icon"></i></button>
       <div class="tb-user" id="tb-user">AD</div>
     </div>
   </header>
@@ -1499,10 +1495,9 @@ function chatKeydown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send
 function startClock(){tick();setInterval(tick,1000);}
 function tick(){
   const now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Manila'}));
-  const h=now.getHours(),m=now.getMinutes(),s=now.getSeconds();
+  const h=now.getHours(),m=now.getMinutes();
   const ap=h>=12?'PM':'AM',h12=h%12||12,pad=v=>String(v).padStart(2,'0');
-  document.getElementById('clk').textContent=pad(h12)+':'+pad(m)+':'+pad(s)+' '+ap;
-  document.getElementById('clk-icon').textContent=h>=6&&h<18?'☀️':h>=18&&h<20?'🌅':'🌙';
+  document.getElementById('clk').textContent=pad(h12)+':'+pad(m)+' '+ap;
 }
 
 // ══ VIEW TOGGLES ══
