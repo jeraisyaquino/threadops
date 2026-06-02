@@ -1138,7 +1138,7 @@ async function selectRole(r){
   document.getElementById('role-screen').style.display='none';
   document.getElementById('app').classList.add('visible');
   document.body.classList.toggle('staff-mode',r==='staff');
-  document.getElementById('sw-lbl').textContent=r==='admin'?'Switch to Staff':'Switch to Admin';
+  const _sb1=document.getElementById('sw-btn-el');if(_sb1)_sb1.title=r==='admin'?'Switch to Staff':'Switch to Admin';
   document.getElementById('tb-user').textContent=r==='admin'?'AD':'ST';
   startClock();buildSettings();loadBranding();
   await loadAllData();
@@ -1149,7 +1149,7 @@ async function selectRole(r){
 function switchRole(){
   currentRole=currentRole==='admin'?'staff':'admin';
   document.body.classList.toggle('staff-mode',currentRole==='staff');
-  document.getElementById('sw-lbl').textContent=currentRole==='admin'?'Switch to Staff':'Switch to Admin';
+  const _sb2=document.getElementById('sw-btn-el');if(_sb2)_sb2.title=currentRole==='admin'?'Switch to Staff':'Switch to Admin';
   document.getElementById('tb-user').textContent=currentRole==='admin'?'AD':'ST';
   renderApparelPreview();
   showToast('Switched to '+(currentRole==='admin'?'Admin':'Staff')+' view');
