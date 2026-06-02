@@ -861,10 +861,10 @@ body.staff-mode .admin-only{display:none!important;}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 // ── Supabase ──
-const _sb=supabase.createClient(
-  'https://tvcuibxqgppqxydjkuhp.supabase.co',
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2Y3VpYnhxZ3BwcXh5ZGprdWhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMjQzMTUsImV4cCI6MjA5NTkwMDMxNX0.tWnICanhliDcfx3r1xW0_xXf8VOWAWE63k2fbvAtPe0'
-);
+const _SB_URL='https://tvcuibxqgppqxydjkuhp.supabase.co';
+const _SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR2Y3VpYnhxZ3BwcXh5ZGprdWhwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAzMjQzMTUsImV4cCI6MjA5NTkwMDMxNX0.tWnICanhliDcfx3r1xW0_xXf8VOWAWE63k2fbvAtPe0';
+const _sb=supabase.createClient(_SB_URL,_SB_KEY);
+const _rtSb=supabase.createClient(_SB_URL,_SB_KEY);
 // ══════════════════════════════════
 // DATA & SVG
 // ══════════════════════════════════
@@ -976,8 +976,7 @@ function renderInventory(items){
   cont.innerHTML=html;
 }
 function setupChannels(){
-  if(_projChannel){try{_sb.removeChannel(_projChannel);}catch(e){}_projChannel=null;}
-  _projChannel=_sb.channel('rt-projects')
+  _projChannel=_rtSb.channel('rt-projects')
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'projects'},payload=>{
       const p=dbToProject(payload.new);
       if(projects[p.dept]&&!projects[p.dept].find(x=>x.id===p.id)){projects[p.dept].push(p);refreshProjectViews();}
@@ -991,8 +990,7 @@ function setupChannels(){
       if(projects[dept]){projects[dept]=projects[dept].filter(x=>x.id!==id);refreshProjectViews();}
     })
     .subscribe();
-  if(_feedChannel){try{_sb.removeChannel(_feedChannel);}catch(e){}_feedChannel=null;}
-  _feedChannel=_sb.channel('rt-feed')
+  _feedChannel=_rtSb.channel('rt-feed')
     .on('postgres_changes',{event:'INSERT',schema:'public',table:'activity_feed'},payload=>{
       feedItems.unshift(payload.new);
       if(document.getElementById('screen-chat')?.classList.contains('active'))renderFeed();
