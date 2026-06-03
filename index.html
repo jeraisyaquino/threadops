@@ -971,8 +971,9 @@ function isOverdue(p){
   return new Date(p.dateEnd)<new Date(new Date().toDateString());
 }
 function stBadge(p){
-  if(isOverdue(p))return`<span class="jst st-ov">${p.status}</span>`;
-  return`<span class="jst ${stColor(p.status)}">${p.status}</span>`;
+  const base=`<span class="jst ${stColor(p.status)}">${p.status}</span>`;
+  if(isOverdue(p))return`<span style="display:inline-flex;align-items:center;gap:5px">${base}<span class="jst st-ov"><i class="ti ti-alert-triangle" style="font-size:11px"></i> Overdue</span></span>`;
+  return base;
 }
 const VISIBLE_STATUSES=['In Queue','On-going','Finishing','QC & Packed','Delivered'];
 const STATUS_NEXT={'In Queue':'On-going','On-going':'Finishing','Finishing':'QC & Packed','QC & Packed':'Delivered'};
