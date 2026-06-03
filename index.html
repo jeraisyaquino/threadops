@@ -654,7 +654,7 @@ body.staff-mode .admin-only{display:none!important;}
 .sf-dept-chip{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--border);background:var(--card);color:var(--muted);display:flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap;}
 .sales-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:1.375rem;}
 .sales-kpi-card{background:var(--card);border-radius:var(--radius);padding:1.125rem 1.25rem;box-shadow:var(--shadow-sm);border:1px solid rgba(26,39,68,.05);}
-.sales-charts{display:flex;flex-direction:column;gap:14px;margin-bottom:1.375rem;}
+.sales-charts{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:1.375rem;}
 .sales-chart-box,.sales-chart-full{background:var(--card);border-radius:var(--radius);padding:1.25rem;box-shadow:var(--shadow-sm);border:1px solid rgba(26,39,68,.05);}
 .sales-chart-full{margin-bottom:1.375rem;}
 .sales-table{width:100%;border-collapse:collapse;font-size:13px;}
@@ -662,6 +662,7 @@ body.staff-mode .admin-only{display:none!important;}
 .sales-table td{padding:9px 12px;border-bottom:.5px solid var(--border);vertical-align:middle;}
 .sales-table tr:last-child td{border-bottom:none;}
 .sales-table tr:hover td{background:rgba(26,39,68,.025);}
+@media(max-width:1100px){.sales-charts{grid-template-columns:1fr 1fr;}}
 @media(max-width:768px){.sales-kpi{grid-template-columns:1fr 1fr;}.sales-charts{grid-template-columns:1fr;}}
 /* ── GANTT ── */
 .gantt-row{display:grid;grid-template-columns:160px 80px 1fr 80px;align-items:center;padding:8px 16px;border-bottom:.5px solid var(--border);gap:10px;cursor:pointer;}
