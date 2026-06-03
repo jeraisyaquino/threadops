@@ -2203,7 +2203,7 @@ async function saveProject(){
   const notes=document.getElementById('pf-notes')?.value.trim()||'';
   const pcs=parseInt(document.getElementById('pf-pcs')?.value)||null;
   const jerseyType=modalDept==='jersey'?(document.getElementById('pf-jersey-type')?.value||null):null;
-  if(!name){document.getElementById('pm-ta')?.focus();showToast('Please enter a team name');return;}
+  if(cfg.hasText&&!name){document.getElementById('pm-ta')?.focus();showToast('Please enter a team name');return;}
   const prev=modalMode==='edit'?projects[modalDept].find(p=>p.id===modalProjId):null;
   const today=todayPH();
   let dateStart=prev?.dateStart||'';
