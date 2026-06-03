@@ -1237,19 +1237,19 @@ async function loadTimeline(projId){
   if(error){pane.innerHTML='<div style="color:var(--muted);font-size:12px;padding:1rem">Could not load timeline.</div>';return;}
   const approved=(data||[]).find(e=>e.event_type==='design_approved');
   const approvedBtn=(approved&&modalDept!=='dress')
-    ?`<div style="display:flex;align-items:center;gap:7px;padding:8px 10px;background:#E9F5EE;border-radius:8px;margin-bottom:12px;border:.5px solid #2E8B57"><i class="ti ti-circle-check" style="color:#2E8B57;font-size:16px"></i><div><div style="font-size:12px;font-weight:500;color:#2E8B57">Design Approved ✓</div><div style="font-size:10px;color:var(--muted)">${fmtTlTime(approved.created_at)} · ${approved.changed_by}</div></div></div>`
+    ?`<div style="display:flex;align-items:center;gap:7px;padding:8px 10px;background:#E9F5EE;border-radius:8px;margin-bottom:12px;border:.5px solid #2E8B57"><i class="ti ti-circle-check" style="color:#2E8B57;font-size:16px"></i><div><div style="font-size:12px;font-weight:500;color:#2E8B57">Design Approved</div><div style="font-size:10px;color:var(--muted)">${fmtTlTime(approved.created_at)} · ${approved.changed_by}</div></div></div>`
     :'';
   const evtColor={order_received:'#2E8B57',status_change:'#E85D26',design_approved:'#1A6FA8',milestone:'#9B59B6',note:'#1A2744',created:'#2E8B57'};
   const evtLabel=e=>{
     if(e.event_type==='order_received')return'Order Received';
     if(e.event_type==='status_change')return`${e.old_value} → ${e.new_value}`;
-    if(e.event_type==='design_approved')return'✓ Design Approved';
+    if(e.event_type==='design_approved')return'Design Approved';
     if(e.event_type==='created')return`Project Created (${e.new_value||'In Queue'})`;
     return e.new_value||'Event';
   };
   const tlHtml=(!data||!data.length)
     ?'<div style="text-align:center;color:var(--muted);padding:2rem 0;font-size:13px">No events yet.</div>'
-    :`<div class="tl">${data.map(e=>{const col=evtColor[e.event_type]||'#1A2744';return`<div class="tli"><div class="tldot" style="border-color:${col};background:${col}"></div><div class="tlt">${evtLabel(e)}</div><div class="tls">${fmtTlTime(e.created_at)} · ${e.changed_by}</div></div>`;}).join('')}</div>`;
+    :data.map((e,i)=>{const col=evtColor[e.event_type]||'#1A2744';const isLast=i===data.length-1;return`<div style="display:flex;gap:10px;margin-bottom:${isLast?'0':'18px'}"><div style="display:flex;flex-direction:column;align-items:center;flex-shrink:0"><div style="width:10px;height:10px;border-radius:50%;background:${col};margin-top:3px;flex-shrink:0"></div>${!isLast?'<div style="width:2px;flex:1;background:var(--border);margin-top:4px;min-height:14px"></div>':''}</div><div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--text)">${evtLabel(e)}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">${fmtTlTime(e.created_at)} · ${e.changed_by}</div></div></div>`;}).join('');
   pane.innerHTML=approvedBtn+tlHtml;
 }
 function fmtTlTime(ts){
@@ -2025,6 +2025,7 @@ function renderFieldsRight(dept,cfg,proj,mode){
           <div style="font-size:12px;color:var(--muted);margin-top:4px">${proj.contact||'—'}</div>
           <div style="margin-top:6px">${stBadge(proj)}</div>
         </div>
+        ${dept!=='dress'&&proj.designFileUrl?`<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:10px 14px;background:#E9F5EE;border-radius:10px;border:.5px solid #2E8B57;flex-shrink:0"><i class="ti ti-circle-check" style="color:#2E8B57;font-size:20px"></i><span style="font-size:11px;font-weight:600;color:#2E8B57;white-space:nowrap">Design Approved</span></div>`:''}
       </div>
       <div class="tl-tab-row">
         <div class="tl-tab active" id="modal-tab-det" onclick="switchModalTab('details')">Details</div>
