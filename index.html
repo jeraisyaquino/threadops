@@ -611,6 +611,74 @@ body.staff-mode .admin-only{display:none!important;}
 /* settings swatches */
 [data-theme="dark"] .sw.on{border-color:var(--text);}
 [data-theme="dark"] .tc.on{border-color:var(--text);}
+/* ── SEARCH ── */
+#search-overlay{position:fixed;inset:0;background:rgba(10,14,26,.55);backdrop-filter:blur(6px);z-index:500;display:none;align-items:flex-start;justify-content:center;padding-top:80px;}
+#search-overlay.open{display:flex;}
+.search-box{width:min(580px,90vw);background:var(--card);border-radius:16px;box-shadow:0 20px 60px rgba(10,14,26,.3);overflow:hidden;}
+.search-inp-wrap{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:.5px solid var(--border);}
+.search-inp-wrap i{font-size:18px;color:var(--muted);flex-shrink:0;}
+#search-inp{flex:1;border:none;background:transparent;font-size:15px;color:var(--text);outline:none;font-family:var(--fu);}
+.search-results{max-height:360px;overflow-y:auto;}
+.search-item{display:flex;align-items:center;gap:12px;padding:10px 18px;cursor:pointer;border-bottom:.5px solid var(--border);transition:background .12s;}
+.search-item:hover{background:var(--bg);}
+.search-item:last-child{border-bottom:none;}
+.srch-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.srch-name{font-size:13px;font-weight:600;color:var(--text);}
+.srch-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.srch-badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;margin-left:auto;flex-shrink:0;}
+.search-empty{text-align:center;padding:2.5rem;color:var(--muted);font-size:13px;}
+/* ── CALENDAR ── */
+.cal-hdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:.5px solid var(--border);}
+.cal-nav-btn{width:30px;height:30px;border-radius:8px;border:.5px solid var(--border);background:var(--card);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.cal-nav-btn:hover{background:var(--nav);color:#fff;border-color:var(--nav);}
+.cal-grid-7{display:grid;grid-template-columns:repeat(7,1fr);}
+.cal-dh{padding:8px 0;text-align:center;font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.8px;background:var(--bg);border-bottom:.5px solid var(--border);}
+.cal-day{min-height:68px;border-right:.5px solid var(--border);border-bottom:.5px solid var(--border);padding:5px;}
+.cal-day:nth-child(7n){border-right:none;}
+.cal-day.other-month .cal-dn{color:rgba(26,39,68,.15);}
+.cal-dn{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:3px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;}
+.cal-day.today .cal-dn{background:var(--accent);color:#fff;border-radius:50%;font-size:10px;}
+.cal-dot{font-size:9px;font-weight:600;padding:1px 5px;border-radius:3px;margin-bottom:2px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;display:block;}
+.cal-more{font-size:9px;color:var(--muted);padding-left:2px;}
+.cal-up-item{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:.5px solid var(--border);cursor:pointer;transition:background .12s;}
+.cal-up-item:hover{background:var(--bg);}
+.cal-up-item:last-child{border-bottom:none;}
+.cal-up-bar{width:4px;min-height:36px;border-radius:4px;flex-shrink:0;}
+.cal-up-name{font-size:13px;font-weight:600;color:var(--text);}
+.cal-up-sub{font-size:11px;color:var(--muted);margin-top:1px;}
+.cal-layout{display:flex;gap:14px;align-items:flex-start;}
+@media(max-width:768px){.cal-layout{flex-direction:column;}.cal-side-panel{width:100%!important;}}
+/* ── GANTT ── */
+.gantt-row{display:grid;grid-template-columns:160px 80px 1fr 80px;align-items:center;padding:8px 16px;border-bottom:.5px solid var(--border);gap:10px;cursor:pointer;}
+.gantt-row:hover{background:var(--bg);}
+.gantt-row:last-child{border-bottom:none;}
+.gantt-row.ghd{background:var(--bg);cursor:default;font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase;padding:6px 16px;}
+.gantt-row.ghd:hover{background:var(--bg);}
+.g-name{font-size:12px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.g-dept-tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;}
+.g-bar-wrap{height:18px;background:var(--bg);border-radius:4px;position:relative;overflow:visible;}
+.g-bar{height:100%;border-radius:4px;position:absolute;top:0;min-width:4px;}
+.g-today-line{position:absolute;top:-4px;bottom:-4px;width:2px;background:rgba(232,93,38,.75);border-radius:2px;z-index:2;}
+.g-date{font-size:10px;color:var(--muted);text-align:right;}
+.g-empty{padding:2rem;text-align:center;color:var(--muted);font-size:13px;}
+/* ── BULK SELECT ── */
+.bulk-bar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--nav);border-radius:12px;padding:10px 18px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 32px rgba(10,14,26,.35);z-index:400;transition:opacity .2s,transform .2s;}
+.bulk-bar.hid{opacity:0;pointer-events:none;transform:translateX(-50%) translateY(16px);}
+.bulk-count{font-size:13px;font-weight:600;color:#fff;}
+.bulk-act{padding:6px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.1);color:#fff;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fu);transition:background .15s;}
+.bulk-act:hover{background:rgba(255,255,255,.22);}
+.bulk-x{color:rgba(255,255,255,.5);font-size:12px;cursor:pointer;padding:4px 8px;border-radius:6px;}
+.bulk-x:hover{color:#fff;background:rgba(255,255,255,.1);}
+.list-chk{width:15px;height:15px;cursor:pointer;accent-color:var(--accent);}
+/* ── PAYMENT STATUS ── */
+.pbadge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;}
+.pbadge.unpaid{background:#F0F1F5;color:#7A8099;}
+.pbadge.partial{background:#FEF0E9;color:#E85D26;}
+.pbadge.paid{background:#E9F5EE;color:#2E8B57;}
+.pay-bar-wrap{margin:6px 0 2px;height:4px;background:var(--bg);border-radius:4px;overflow:hidden;}
+.pay-bar-fill{height:100%;border-radius:4px;transition:width .3s;}
+[data-theme="dark"] #search-inp{color:var(--text);}
+[data-theme="dark"] .cal-day.other-month .cal-dn{color:rgba(255,255,255,.08);}
 </style>
 </head>
 <body>
@@ -638,6 +706,7 @@ body.staff-mode .admin-only{display:none!important;}
       </div>
     </div>
     <div class="tb-right">
+      <button class="sw-btn" onclick="openSearch()" title="Search projects (Ctrl+K)"><i class="ti ti-search"></i></button>
       <div class="clk"><div><div class="clk-time" id="clk">--:-- --</div><div class="clk-lbl">PH TIME (UTC+8)</div></div></div>
       <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme"><i class="ti ti-moon" id="theme-icon"></i></button>
       <div class="notif-wrap" id="notif-wrap">
@@ -663,6 +732,7 @@ body.staff-mode .admin-only{display:none!important;}
       <div class="ni" onclick="showScreen('apparel',this)"><i class="ti ti-shirt"></i><span class="ni-label">Apparel Preview</span></div>
       <div class="ni" onclick="showScreen('inventory',this)"><i class="ti ti-package"></i><span class="ni-label">Inventory</span><span class="nbadge" id="inv-badge" style="display:none"></span></div>
       <div class="ni" onclick="showScreen('map',this)"><i class="ti ti-map"></i><span class="ni-label">Project Map</span></div>
+      <div class="ni" onclick="showScreen('cal',this)"><i class="ti ti-calendar"></i><span class="ni-label">Calendar</span></div>
       <div class="ni" onclick="showScreen('chat',this)" id="nav-chat"><i class="ti ti-activity"></i><span class="ni-label">Activity</span></div>
       <div class="sl">Departments</div>
       <div class="ni" onclick="showScreen('jersey',this)"><span class="ddot" style="background:#E85D26"></span><span class="ni-label dl-0">Jersey Sublimation</span></div>
@@ -680,7 +750,7 @@ body.staff-mode .admin-only{display:none!important;}
       <div class="screen active" id="screen-dashboard">
         <div class="ph">
           <div class="ph-left"><div class="pt">Operations Dashboard</div><div class="ps">Live production overview</div></div>
-          
+          <div class="ph-actions"><button class="btn btn-o" onclick="exportCSV()"><i class="ti ti-download"></i>Export CSV</button></div>
         </div>
         <div id="needs-attention"><div class="attn-wrap"><div class="attn-head"><div class="skel skel-icon" style="width:20px;height:20px;border-radius:50%"></div><div class="skel skel-line" style="width:120px"></div></div><div class="skel-item"><div class="skel skel-icon"></div><div style="flex:1"><div class="skel skel-line" style="width:70%"></div><div class="skel skel-sub" style="width:45%"></div></div></div><div class="skel-item"><div class="skel skel-icon"></div><div style="flex:1"><div class="skel skel-line" style="width:55%"></div><div class="skel skel-sub" style="width:35%"></div></div></div><div class="skel-item"><div class="skel skel-icon"></div><div style="flex:1"><div class="skel skel-line" style="width:65%"></div><div class="skel skel-sub" style="width:40%"></div></div></div></div></div>
         <div class="sg" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr))">
@@ -802,28 +872,12 @@ body.staff-mode .admin-only{display:none!important;}
           <div class="fl-lbl">Order Flow</div>
           <div class="fl-row"><div class="fn or">Order In</div><div class="fa">→</div><div class="fn nv">Measurement</div><div class="fa">→</div><div class="fn nv">Design OK</div><div class="fa">→</div><div class="fn gd">Materials</div><div class="fa">→</div><div class="fn or">Cutting</div><div class="fa">→</div><div class="fn or">Sewing</div><div class="fa">→</div><div class="fn gd">QC</div><div class="fa">→</div><div class="fn gn">Deliver</div></div>
         </div>
-        <div class="twocol">
-          <div class="map-wrap" style="margin-bottom:0">
-            <div class="stitle" style="margin-bottom:.75rem">Timeline — Warriors Set</div>
-            <div class="tl">
-              <div class="tli"><div class="tldot done"></div><div class="tlt">Order Received</div><div class="tls">May 20 · Warriors BC</div></div>
-              <div class="tli"><div class="tldot done"></div><div class="tlt">Design Approved</div><div class="tls">May 22 · Orange + Navy</div></div>
-              <div class="tli"><div class="tldot done"></div><div class="tlt">Fabric Pulled</div><div class="tls">May 23 · 40m poly</div></div>
-              <div class="tli"><div class="tldot act"></div><div class="tlt">Cutting & Printing</div><div class="tls">In progress — 60%</div></div>
-              <div class="tli"><div class="tldot pnd"></div><div class="tlt">Sewing</div><div class="tls">ETA: Jun 5</div></div>
-              <div class="tli"><div class="tldot pnd"></div><div class="tlt">QC & Pack</div><div class="tls">ETA: Jun 7</div></div>
-              <div class="tli"><div class="tldot pnd"></div><div class="tlt">Delivery</div><div class="tls">Target: Jun 8</div></div>
-            </div>
+        <div style="margin-top:14px;background:var(--card);border-radius:var(--radius);border:.5px solid var(--border);box-shadow:var(--shadow-sm);overflow:hidden">
+          <div style="padding:12px 16px;border-bottom:.5px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:13px;font-weight:700;color:var(--text)">Active Project Timeline</span>
+            <span style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px"><span style="display:inline-block;width:10px;height:2px;background:rgba(232,93,38,.75);border-radius:2px;vertical-align:middle"></span>Today</span>
           </div>
-          <div class="map-wrap" style="margin-bottom:0">
-            <div class="stitle" style="margin-bottom:.75rem">Phase Roadmap</div>
-            <div style="display:flex;flex-direction:column;gap:8px">
-              <div style="background:#E9F5EE;border-radius:8px;padding:9px 12px;border-left:4px solid #2E8B57"><div style="font-size:12px;font-weight:600;color:#2E8B57">Phase 1 — Foundation ✅</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Dept setup · Onboarding · Tracking</div></div>
-              <div style="background:#FEF0E9;border-radius:8px;padding:9px 12px;border-left:4px solid #E85D26"><div style="font-size:12px;font-weight:600;color:#E85D26">Phase 2 — Operations ▶ Now</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Inventory · Palette · Dashboards</div></div>
-              <div style="background:#FEF7E6;border-radius:8px;padding:9px 12px;border-left:4px solid #F0A500"><div style="font-size:12px;font-weight:600;color:#7A5A00">Phase 3 — Client Portal</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Login · Tracking · Approvals</div></div>
-              <div style="background:#F0F1F5;border-radius:8px;padding:9px 12px;border-left:4px solid #7A8099"><div style="font-size:12px;font-weight:600;color:#7A8099">Phase 4 — Analytics</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Revenue · KPIs · Suppliers</div></div>
-            </div>
-          </div>
+          <div id="gantt-content"></div>
         </div>
       </div>
 
@@ -934,8 +988,50 @@ body.staff-mode .admin-only{display:none!important;}
         </div>
       </div>
 
+      <!-- CALENDAR -->
+      <div class="screen" id="screen-cal">
+        <div class="ph">
+          <div class="ph-left"><div class="pt">Calendar</div><div class="ps">Deadlines & upcoming due dates</div></div>
+          <div class="ph-actions" style="display:flex;align-items:center;gap:8px">
+            <button class="cal-nav-btn" onclick="calNav(-1)"><i class="ti ti-chevron-left"></i></button>
+            <span id="cal-month-label" style="font-size:13px;font-weight:600;color:var(--text);min-width:130px;text-align:center"></span>
+            <button class="cal-nav-btn" onclick="calNav(1)"><i class="ti ti-chevron-right"></i></button>
+          </div>
+        </div>
+        <div class="cal-layout">
+          <div style="flex:1;min-width:0;background:var(--card);border-radius:var(--radius);border:.5px solid var(--border);box-shadow:var(--shadow-sm);overflow:hidden">
+            <div class="cal-grid-7"><div class="cal-dh">SUN</div><div class="cal-dh">MON</div><div class="cal-dh">TUE</div><div class="cal-dh">WED</div><div class="cal-dh">THU</div><div class="cal-dh">FRI</div><div class="cal-dh">SAT</div></div>
+            <div class="cal-grid-7" id="cal-grid-body"></div>
+          </div>
+          <div class="cal-side-panel" style="width:280px;flex-shrink:0;background:var(--card);border-radius:var(--radius);border:.5px solid var(--border);box-shadow:var(--shadow-sm);overflow:hidden;display:flex;flex-direction:column;max-height:600px">
+            <div style="padding:12px 16px;border-bottom:.5px solid var(--border);font-size:13px;font-weight:700;color:var(--text)">Upcoming Deadlines</div>
+            <div id="cal-upcoming" style="overflow-y:auto;flex:1"></div>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
+</div>
+
+<!-- SEARCH OVERLAY -->
+<div id="search-overlay" onclick="if(event.target===this)closeSearch()">
+  <div class="search-box">
+    <div class="search-inp-wrap">
+      <i class="ti ti-search"></i>
+      <input id="search-inp" type="text" placeholder="Search projects by name or contact…" oninput="doSearch(this.value)" autocomplete="off">
+      <span style="font-size:11px;color:var(--muted);flex-shrink:0;font-family:monospace">ESC</span>
+    </div>
+    <div class="search-results" id="search-results"><div class="search-empty">Start typing to search all projects…</div></div>
+  </div>
+</div>
+
+<!-- BULK BAR -->
+<div class="bulk-bar hid" id="bulk-bar">
+  <span class="bulk-count" id="bulk-count">0 selected</span>
+  <button class="bulk-act" onclick="showBulkMenu()"><i class="ti ti-arrow-right" style="font-size:13px"></i> Set Status</button>
+  <div id="bulk-status-menu" style="display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--nav);border-radius:10px;padding:8px;display:none;flex-direction:column;gap:4px;min-width:160px;box-shadow:0 8px 24px rgba(10,14,26,.3)"></div>
+  <span class="bulk-x" onclick="clearBulk()"><i class="ti ti-x" style="font-size:13px"></i></span>
 </div>
 
 <!-- PROJECT MODAL -->
@@ -1168,6 +1264,8 @@ function setupChannels(){
 }
 function refreshProjectViews(){
   renderDashboardStats();renderPaymentSummary();renderNeedsAttention();renderApparelPreview();renderAllDepts();renderArchive();
+  if(document.getElementById('screen-map')?.classList.contains('active'))renderProjectMap();
+  if(document.getElementById('screen-cal')?.classList.contains('active'))renderCalendar();
 }
 async function loadAllData(){
   try{
@@ -1217,6 +1315,7 @@ let projects={jersey:[],dress:[],merch:[],scrub:[]};
 
 let dressStyleIdx=0,currentRole='admin',modalMode='add',modalDept='jersey',modalProjId=null,modalPalState={},customPresets={},inventoryItems=[],chatMessages=[],_chatChannel=null;
 let feedItems=[],activeFeedDept='all',_feedChannel=null,_projChannel=null;
+let bulkSel={},calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
 const deptTabs={jersey:'all',dress:'all',merch:'all',scrub:'all'};
 const deptViews={jersey:'grid',dress:'grid',merch:'grid',scrub:'grid'};
 let apparelView='grid',apparelTab='all';
@@ -1272,6 +1371,8 @@ function showScreen(id,el){
   if(id==='apparel')renderApparelPreview();
   if(id==='dashboard'){renderDashboardStats();renderNeedsAttention();renderPaymentSummary();}
   if(id==='settings')loadCapacityLimits();
+  if(id==='map')renderProjectMap();
+  if(id==='cal'){calYear=new Date().getFullYear();calMonth=new Date().getMonth();renderCalendar();}
   if(id==='chat'){
     renderFeedDeptList();renderFeedHeader();renderFeed();renderActChips();renderArchive();
     if(window.innerWidth<=768)switchActTab(activeActTab||'feed');
@@ -1746,7 +1847,7 @@ async function doAdvance(e,id,dept,toStatus){await advanceProjectStatus(e,id,dep
 function projListHTML(list,dept){
   if(!list.length)return '<div style="padding:1.5rem;text-align:center;font-size:13px;color:var(--muted)">No projects</div>';
   const isCustomer=dept==='dress'||dept==='scrub';
-  const rows=list.map(p=>`<tr data-id="${p.id}">
+  const rows=list.map(p=>`<tr data-id="${p.id}" style="cursor:pointer"><td onclick="event.stopPropagation()" style="width:28px;padding-right:0"><input type="checkbox" class="list-chk" ${bulkSel[p.id]?'checked':''} onchange="toggleBulkItem('${p.id}','${dept}',this)"></td>
     <td><div class="proj-list-svg">${getSvg(dept,p.colors,36,p.textVal,p.fontSize)}</div></td>
     <td><strong>${p.name}</strong></td>
     <td>${stBadge(p)}</td>
@@ -1754,7 +1855,7 @@ function projListHTML(list,dept){
     <td>₱${(p.total||0).toLocaleString()}</td>
     <td>₱${Math.max(0,(p.total||0)-(p.dp||0)).toLocaleString()}</td>
   </tr>`).join('');
-  return `<table><thead><tr><th></th><th>${isCustomer?'Customer':'Team'}</th><th>Status</th><th>Due Date</th><th>Total</th><th>Balance</th></tr></thead><tbody>${rows}</tbody></table>`;
+  return `<table><thead><tr><th style="width:28px"></th><th></th><th>${isCustomer?'Customer':'Team'}</th><th>Status</th><th>Due Date</th><th>Total</th><th>Balance</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 function attachCardListeners(el,dept){if(!el)return;el.querySelectorAll('.proj-card').forEach(c=>c.addEventListener('click',()=>openProjectModal(c.dataset.id,dept,'view')));}
@@ -1781,8 +1882,8 @@ function projListAllHTML(list,dept){
     const grp=list.filter(p=>p.status===status);
     if(!grp.length)return;
     hasAny=true;
-    rows+=`<tr><td colspan="6" style="padding:14px 14px 7px;background:var(--bg);border-top:2px solid var(--border)"><span class="jst ${stColor(status)}" style="font-size:10px">${status}</span></td></tr>`;
-    rows+=grp.map(p=>`<tr data-id="${p.id}">
+    rows+=`<tr><td colspan="7" style="padding:14px 14px 7px;background:var(--bg);border-top:2px solid var(--border)"><span class="jst ${stColor(status)}" style="font-size:10px">${status}</span></td></tr>`;
+    rows+=grp.map(p=>`<tr data-id="${p.id}" style="cursor:pointer"><td onclick="event.stopPropagation()" style="width:28px;padding-right:0"><input type="checkbox" class="list-chk" ${bulkSel[p.id]?'checked':''} onchange="toggleBulkItem('${p.id}','${dept}',this)"></td>
       <td><div class="proj-list-svg">${getSvg(dept,p.colors,36,p.textVal,p.fontSize)}</div></td>
       <td><strong>${p.name}</strong></td>
       <td><span class="jst ${stColor(p.status)}">${p.status}</span></td>
@@ -1792,7 +1893,7 @@ function projListAllHTML(list,dept){
     </tr>`).join('');
   });
   if(!hasAny)return'<div style="padding:1.5rem;text-align:center;font-size:13px;color:var(--muted)">No projects</div>';
-  return`<table><thead><tr><th></th><th>${isCustomer?'Customer':'Team'}</th><th>Status</th><th>Due Date</th><th>Total</th><th>Balance</th></tr></thead><tbody>${rows}</tbody></table>`;
+  return`<table><thead><tr><th style="width:28px"></th><th></th><th>${isCustomer?'Customer':'Team'}</th><th>Status</th><th>Due Date</th><th>Total</th><th>Balance</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 
@@ -1898,7 +1999,8 @@ function openProjectModal(projId,dept,mode){
     footer.innerHTML=`<button class="btn btn-o" onclick="closeModal('proj-modal')">Cancel</button><button class="btn btn-p" onclick="saveProject()">Save Changes</button>`;
   } else {
     if(currentRole==='admin'){
-      footer.innerHTML=`<button class="btn btn-o" onclick="closeModal('proj-modal')">Close</button><button class="btn btn-p" onclick="switchToEdit()"><i class="ti ti-edit"></i> Edit</button>`;
+      const _vp=proj;
+      footer.innerHTML=`<button class="btn btn-o" onclick="closeModal('proj-modal')">Close</button>${_vp?.total?`<button class="btn btn-o" onclick="showPayLogger('${projId}','${dept}')"><i class="ti ti-cash"></i> Log Pay</button>`:''}<button class="btn btn-p" onclick="switchToEdit()"><i class="ti ti-edit"></i> Edit</button>`;
     } else {
       footer.innerHTML=`<button class="btn btn-p" onclick="closeModal('proj-modal')">Close</button>`;
     }
@@ -2146,9 +2248,10 @@ function renderFieldsRight(dept,cfg,proj,mode){
       <div class="view-row"><label>Start Date</label><div class="vv">${proj.dateStart?fmtShortDate(proj.dateStart):'—'}</div></div>
       <div class="view-row"><label>Projected / Due Date</label><div class="vv">${proj.dateEnd?fmtShortDate(proj.dateEnd)+(proj.projectedDateEnd?' – '+fmtShortDate(proj.projectedDateEnd):''):'—'}</div></div>
       ${proj.deliveredDate?`<div class="view-row"><label>Delivered Date</label><div class="vv" style="display:flex;align-items:center;gap:5px;color:#2E8B57;font-weight:600"><i class="ti ti-circle-check" style="font-size:13px"></i>${fmtShortDate(proj.deliveredDate)}</div></div>`:''}
-      <div class="view-row"><label>Total Payment</label><div class="vv">₱${(proj.total||0).toLocaleString()}</div></div>
-      <div class="view-row"><label>Downpayment</label><div class="vv">₱${(proj.dp||0).toLocaleString()}</div></div>
-      <div class="view-row"><label>Balance</label><div class="vv">₱${((proj.total||0)-(proj.dp||0)).toLocaleString()}</div></div>
+      <div class="view-row"><label>Total Payment</label><div class="vv" style="display:flex;align-items:center;justify-content:space-between">₱${(proj.total||0).toLocaleString()}${payBadge(proj)}</div>${proj.total?`<div class="pay-bar-wrap"><div class="pay-bar-fill" style="width:${Math.min(100,Math.round(((proj.dp||0)/(proj.total||1))*100))}%;background:${(proj.dp||0)>=(proj.total||0)?'#2E8B57':'#E85D26'}"></div></div>`:''}
+      </div>
+      <div class="view-row"><label>Collected / DP</label><div class="vv">₱${(proj.dp||0).toLocaleString()}</div></div>
+      <div class="view-row"><label>Balance Due</label><div class="vv" style="font-weight:600;color:${(proj.dp||0)>=(proj.total||0)?'#2E8B57':'#E85D26'}">₱${Math.max(0,(proj.total||0)-(proj.dp||0)).toLocaleString()}</div></div>
       <div class="view-row"><label>Status</label><div class="vv">${stBadge(proj)}</div></div>
       ${proj.pcs?`<div class="view-row"><label>Pieces</label><div class="vv">${proj.pcs} pcs${dept==='jersey'&&proj.jerseyType?' · '+({jersey_only:'Jersey Only',pair:'Pair',with_warmings:'With Warmings'}[proj.jerseyType]||proj.jerseyType):''}</div></div>`:''}
       <div class="view-row"><label>Notes</label><div class="vv" style="white-space:pre-wrap">${proj.notes||'—'}</div></div>
@@ -2412,6 +2515,224 @@ function _syncThemeBtn(t){
     document.addEventListener('DOMContentLoaded',()=>_syncThemeBtn(t));
   }else{_syncThemeBtn(t);}
 })();
+
+// ══ SEARCH ══
+function openSearch(){
+  document.getElementById('search-overlay').classList.add('open');
+  document.getElementById('search-inp').value='';
+  document.getElementById('search-results').innerHTML='<div class="search-empty">Start typing to search all projects…</div>';
+  setTimeout(()=>document.getElementById('search-inp').focus(),50);
+}
+function closeSearch(){document.getElementById('search-overlay').classList.remove('open');}
+function doSearch(q){
+  const el=document.getElementById('search-results');
+  if(!q.trim()){el.innerHTML='<div class="search-empty">Start typing to search all projects…</div>';return;}
+  const DC={jersey:'#E85D26',dress:'#9B59B6',merch:'#F0A500',scrub:'#2E8B57'};
+  const DN={jersey:'Jersey',dress:'Dress',merch:'Merch',scrub:'Scrub'};
+  const matches=[];
+  Object.entries(projects).forEach(([dept,list])=>{
+    list.filter(p=>p.name.toLowerCase().includes(q.toLowerCase())||(p.contact||'').toLowerCase().includes(q.toLowerCase())).forEach(p=>matches.push({p,dept}));
+  });
+  if(!matches.length){el.innerHTML=`<div class="search-empty">No projects found for "<strong>${q}</strong>"</div>`;return;}
+  el.innerHTML=matches.slice(0,12).map(({p,dept})=>{
+    const col=DC[dept];const fg=col==='#F0A500'?'#7A5A00':'#fff';
+    return`<div class="search-item" onclick="closeSearch();openProjectModal('${p.id}','${dept}','view')">
+      <div class="srch-dot" style="background:${col}"></div>
+      <div style="flex:1;min-width:0"><div class="srch-name">${p.name}</div><div class="srch-sub">${p.contact||'—'} · ${p.status}</div></div>
+      <span class="srch-badge" style="background:${col}22;color:${col==='#F0A500'?'#7A5A00':col}">${DN[dept]}</span>
+    </div>`;
+  }).join('');
+}
+document.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();openSearch();}
+  if(e.key==='Escape'){closeSearch();clearBulk();}
+});
+
+// ══ EXPORT CSV ══
+function exportCSV(){
+  const DN={jersey:'Jersey Sub.',dress:'Custom Dress',merch:'Merchandise',scrub:'Scrub Suits'};
+  const rows=[['Team/Customer','Contact','Phone','Department','Status','Due Date','Delivered Date','Total (PHP)','DP (PHP)','Balance (PHP)','Pieces','Jersey Type']];
+  Object.entries(projects).forEach(([dept,list])=>{
+    list.forEach(p=>{
+      const bal=Math.max(0,(p.total||0)-(p.dp||0));
+      rows.push([p.name,p.contact||'',p.phone||'',DN[dept],p.status,p.dateEnd||'',p.deliveredDate||'',(p.total||0),(p.dp||0),bal,p.pcs||'',p.jerseyType||'']);
+    });
+  });
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));
+  a.download='threadops-'+todayPH()+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);
+  showToast('CSV exported',{icon:'ti-download',iconBg:'#E9F5EE',iconColor:'#2E8B57'});
+}
+
+// ══ PAYMENT HELPERS ══
+function payBadge(proj){
+  if(!(proj.total))return'<span class="pbadge unpaid">No total set</span>';
+  const pct=(proj.dp||0)/(proj.total||1);
+  if(pct>=1)return'<span class="pbadge paid"><i class="ti ti-circle-check" style="font-size:10px"></i> Paid</span>';
+  if((proj.dp||0)>0)return`<span class="pbadge partial"><i class="ti ti-clock" style="font-size:10px"></i> Partial</span>`;
+  return'<span class="pbadge unpaid">Unpaid</span>';
+}
+function showPayLogger(projId,dept){
+  const footer=document.getElementById('pm-footer');
+  footer.innerHTML=`<div style="display:flex;gap:8px;align-items:center;width:100%;flex-wrap:wrap">
+    <span style="font-size:12px;font-weight:600;color:var(--text);flex-shrink:0">Add payment:</span>
+    <input type="number" id="pay-log-amt" min="0" placeholder="Amount (₱)" style="flex:1;min-width:100px;padding:7px 10px;border:.5px solid var(--border);border-radius:8px;font-size:13px;font-family:var(--fu);background:var(--card);color:var(--text);outline:none" onkeydown="if(event.key==='Enter')recordPayment('${projId}','${dept}')">
+    <button class="btn btn-p" onclick="recordPayment('${projId}','${dept}')" style="flex-shrink:0;font-weight:600;box-shadow:0 2px 8px rgba(232,93,38,.25)"><i class="ti ti-circle-check"></i> Record</button>
+    <button class="btn btn-o" onclick="openProjectModal('${projId}','${dept}','view')" style="flex-shrink:0">Cancel</button>
+  </div>`;
+  setTimeout(()=>document.getElementById('pay-log-amt')?.focus(),50);
+}
+async function recordPayment(projId,dept){
+  const amt=parseFloat(document.getElementById('pay-log-amt')?.value)||0;
+  if(!amt||amt<=0){showToast('Enter a valid amount');return;}
+  const proj=projects[dept].find(p=>p.id===projId);if(!proj)return;
+  const newDp=Math.round(((proj.dp||0)+amt)*100)/100;
+  const{error}=await _sb.from('projects').update({dp:newDp}).eq('id',projId);
+  if(error){showToast('Failed: '+error.message,{icon:'ti-alert-circle',iconBg:'#FDECEA',iconColor:'#C0392B'});return;}
+  const idx=projects[dept].findIndex(p=>p.id===projId);
+  if(idx>-1)projects[dept][idx].dp=newDp;
+  await Promise.all([
+    insertTimelineEntry(projId,'note',null,'Payment logged: ₱'+amt.toLocaleString()),
+    insertFeedEntry(dept,projId,proj.name,'Payment ₱'+amt.toLocaleString()+' logged for '+proj.name,'note')
+  ]);
+  renderPaymentSummary();renderDashboardStats();
+  showToast('₱'+amt.toLocaleString()+' recorded',{icon:'ti-cash',iconBg:'#E9F5EE',iconColor:'#2E8B57'});
+  openProjectModal(projId,dept,'view');
+}
+
+// ══ PROJECT MAP / GANTT ══
+function renderProjectMap(){
+  const el=document.getElementById('gantt-content');if(!el)return;
+  const all=[];
+  Object.entries(projects).forEach(([dept,list])=>{list.filter(p=>p.status!=='Delivered'&&p.dateEnd).forEach(p=>all.push({p,dept}));});
+  if(!all.length){el.innerHTML='<div class="g-empty">No active projects with due dates set.</div>';return;}
+  all.sort((a,b)=>a.p.dateEnd.localeCompare(b.p.dateEnd));
+  const DC={jersey:'#E85D26',dress:'#9B59B6',merch:'#F0A500',scrub:'#2E8B57'};
+  const DN={jersey:'Jersey',dress:'Dress',merch:'Merch',scrub:'Scrub'};
+  const today=new Date(todayPH());
+  const endDates=all.map(x=>new Date(x.p.dateEnd));
+  const minD=new Date(today);minD.setDate(minD.getDate()-7);
+  const maxD=new Date(Math.max(...endDates,today));maxD.setDate(maxD.getDate()+7);
+  const span=maxD-minD||1;
+  const todayPct=Math.max(0,Math.min(100,((today-minD)/span)*100));
+  const rows=all.map(({p,dept})=>{
+    const col=DC[dept];const fg=col==='#F0A500'?'#7A5A00':col;
+    const start=p.dateStart?new Date(p.dateStart):new Date(today);
+    const end=new Date(p.dateEnd);
+    const left=Math.max(0,Math.min(98,((start-minD)/span)*100));
+    const right=Math.max(0,Math.min(100,((end-minD)/span)*100));
+    const barW=Math.max(right-left,2);
+    const isOv=isOverdue(p);
+    return`<div class="gantt-row" onclick="openProjectModal('${p.id}','${dept}','view')">
+      <div class="g-name" title="${p.name}">${p.name}</div>
+      <span class="g-dept-tag" style="background:${col}22;color:${fg}">${DN[dept]}</span>
+      <div class="g-bar-wrap">
+        <div class="g-bar" style="left:${left}%;width:${barW}%;background:${isOv?'#C0392B':col};opacity:${isOv?.75:1}"></div>
+        <div class="g-today-line" style="left:${todayPct}%"></div>
+      </div>
+      <div class="g-date">${fmtShortDate(p.dateEnd)}</div>
+    </div>`;
+  }).join('');
+  el.innerHTML=`<div class="gantt-row ghd"><span>Project</span><span>Dept</span><span>Timeline</span><span style="text-align:right">Due</span></div>${rows}`;
+}
+
+// ══ CALENDAR ══
+function renderCalendar(){
+  const gridEl=document.getElementById('cal-grid-body');const upEl=document.getElementById('cal-upcoming');
+  if(!gridEl||!upEl)return;
+  const today=new Date(todayPH());
+  const y=calYear,m=calMonth;
+  const DC={jersey:'#E85D26',dress:'#9B59B6',merch:'#F0A500',scrub:'#2E8B57'};
+  const first=new Date(y,m,1),last=new Date(y,m+1,0);
+  const startDay=first.getDay();
+  document.getElementById('cal-month-label').textContent=first.toLocaleDateString('en-PH',{month:'long',year:'numeric'});
+  const byDate={};
+  Object.entries(projects).forEach(([dept,list])=>{
+    list.filter(p=>p.dateEnd).forEach(p=>{if(!byDate[p.dateEnd])byDate[p.dateEnd]=[];byDate[p.dateEnd].push({p,dept});});
+  });
+  let html='';
+  const prevLast=new Date(y,m,0).getDate();
+  for(let i=startDay-1;i>=0;i--){html+=`<div class="cal-day other-month"><div class="cal-dn">${prevLast-i}</div></div>`;}
+  for(let d=1;d<=last.getDate();d++){
+    const dStr=`${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isToday=today.getFullYear()===y&&today.getMonth()===m&&today.getDate()===d;
+    const items=byDate[dStr]||[];
+    const dots=items.slice(0,2).map(({p,dept})=>{const col=DC[dept];const fg=col==='#F0A500'?'#7A5A00':col;return`<div class="cal-dot" style="background:${col}22;color:${fg}" onclick="event.stopPropagation();openProjectModal('${p.id}','${dept}','view')" title="${p.name}">${p.name}</div>`;}).join('');
+    const more=items.length>2?`<div class="cal-more">+${items.length-2} more</div>`:'';
+    html+=`<div class="cal-day${isToday?' today':''}"><div class="cal-dn">${d}</div>${dots}${more}</div>`;
+  }
+  const endDay=last.getDay();
+  for(let i=1;i<(7-endDay)%7;i++){html+=`<div class="cal-day other-month"><div class="cal-dn">${i}</div></div>`;}
+  gridEl.innerHTML=html;
+  const upItems=[];
+  Object.entries(projects).forEach(([dept,list])=>{
+    list.filter(p=>p.dateEnd&&p.status!=='Delivered').forEach(p=>{
+      const d=new Date(p.dateEnd+'T00:00:00');
+      const diff=Math.ceil((d-today)/(864e5));
+      if(diff>=-3&&diff<=30)upItems.push({p,dept,diff});
+    });
+  });
+  upItems.sort((a,b)=>a.diff-b.diff);
+  if(!upItems.length){upEl.innerHTML='<div style="text-align:center;color:var(--muted);padding:2rem;font-size:12px">No deadlines in the next 30 days.</div>';return;}
+  upEl.innerHTML=upItems.map(({p,dept,diff})=>{
+    const col=DC[dept];
+    const lbl=diff<0?`<span style="color:#C0392B;font-weight:700">${Math.abs(diff)}d overdue</span>`:diff===0?'<span style="color:#E85D26;font-weight:700">Today</span>':`<span style="color:${diff<=3?'#E85D26':diff<=7?'#7A5A00':'var(--muted)'}">In ${diff}d</span>`;
+    return`<div class="cal-up-item" onclick="openProjectModal('${p.id}','${dept}','view')">
+      <div class="cal-up-bar" style="background:${col}"></div>
+      <div style="flex:1;min-width:0"><div class="cal-up-name">${p.name}</div><div class="cal-up-sub">${p.contact||'—'} · <span class="jst ${stColor(p.status)}" style="font-size:9px">${p.status}</span></div></div>
+      <div style="text-align:right;flex-shrink:0">${lbl}<div style="font-size:10px;color:var(--muted)">${fmtShortDate(p.dateEnd)}</div></div>
+    </div>`;
+  }).join('');
+}
+function calNav(dir){
+  calMonth+=dir;
+  if(calMonth>11){calMonth=0;calYear++;}else if(calMonth<0){calMonth=11;calYear--;}
+  renderCalendar();
+}
+
+// ══ BULK SELECT ══
+function updateBulkBar(){
+  const bar=document.getElementById('bulk-bar');if(!bar)return;
+  const count=Object.keys(bulkSel).length;
+  if(!count){bar.classList.add('hid');return;}
+  bar.classList.remove('hid');
+  document.getElementById('bulk-count').textContent=count+' selected';
+}
+function toggleBulkItem(id,dept,chk){
+  if(chk.checked)bulkSel[id]={id,dept};else delete bulkSel[id];
+  updateBulkBar();
+}
+function clearBulk(){
+  bulkSel={};
+  document.querySelectorAll('.list-chk').forEach(c=>c.checked=false);
+  updateBulkBar();
+}
+function showBulkMenu(){
+  const menu=document.getElementById('bulk-status-menu');
+  if(!menu)return;
+  if(menu.style.display==='flex'){menu.style.display='none';return;}
+  menu.innerHTML=VISIBLE_STATUSES.map(s=>`<button onclick="doBulkStatus('${s}');document.getElementById('bulk-status-menu').style.display='none'" style="padding:8px 14px;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:12px;font-weight:600;font-family:var(--fu);border-radius:8px;cursor:pointer;text-align:left;transition:background .12s" onmouseover="this.style.background='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">${s}</button>`).join('');
+  menu.style.display='flex';menu.style.flexDirection='column';menu.style.gap='4px';
+}
+async function doBulkStatus(newStatus){
+  const items=Object.values(bulkSel);if(!items.length)return;
+  const today=todayPH();
+  showToast('Updating '+items.length+' projects…');
+  await Promise.all(items.map(async({id,dept})=>{
+    const proj=projects[dept].find(p=>p.id===id);if(!proj)return;
+    const old=proj.status;
+    const upd={status:newStatus};
+    if(newStatus==='On-going'&&!proj.dateStart)upd.date_start=today;
+    if(newStatus==='Delivered'&&!proj.deliveredDate)upd.delivered_date=today;
+    await _sb.from('projects').update(upd).eq('id',id);
+    const idx=projects[dept].findIndex(p=>p.id===id);
+    if(idx>-1)projects[dept][idx]={...projects[dept][idx],status:newStatus,dateStart:upd.date_start||projects[dept][idx].dateStart,deliveredDate:upd.delivered_date||projects[dept][idx].deliveredDate};
+    await Promise.all([insertTimelineEntry(id,'status_change',old,newStatus),insertFeedEntry(dept,id,proj.name,proj.name+' → '+newStatus+' (bulk)','status_update')]);
+  }));
+  clearBulk();refreshProjectViews();
+  showToast(`${items.length} project${items.length>1?'s':''} → ${newStatus}`,{icon:'ti-circle-check',iconBg:'#E9F5EE',iconColor:'#2E8B57'});
+}
 </script>
 </body>
 </html>
