@@ -13,12 +13,11 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "Bash",
+        "matcher": "Bash(git push*)",
         "hooks": [
           {
             "type": "command",
-            "if": "Bash(git commit*)",
-            "command": "vercel --prod",
+            "command": "npx vercel@latest deploy --prod --yes",
             "timeout": 120,
             "statusMessage": "Deploying to Vercel..."
           }
