@@ -134,7 +134,7 @@ body{font-family:var(--fu);background:var(--bg);color:var(--text);min-height:100
 .tab-btn:hover:not(.active){background:var(--bg);color:var(--text);}
 .dress-tabs{display:flex;gap:6px;margin-bottom:.75rem;flex-wrap:wrap;}
 .dtab{padding:6px 15px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--muted);transition:all .15s;box-shadow:var(--shadow-sm);}
-.dtab.active{background:var(--nav);color:#fff;border-color:var(--nav);}
+.dtab.active{background:var(--nav);color:#fff;border-color:var(--nav);}.dtab-del{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;margin-left:5px;font-size:10px;line-height:1;opacity:0;transition:opacity .15s;cursor:pointer;vertical-align:middle;}.dtab:hover .dtab-del{opacity:.6;}.dtab.active .dtab-del{color:#fff;}
 
 /* ── DASHBOARD DEPT CARDS ── */
 .dg{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:1.375rem;}
@@ -838,10 +838,11 @@ body.staff-mode .admin-only{display:none!important;}
               <div class="btn-icon" id="dress-list-btn" onclick="setDeptView('dress','list')" title="List"><i class="ti ti-list"></i></div>
             </div>
             <div class="btn-icon" id="dress-board-btn" onclick="openBoardView('dress')" title="Board"><i class="ti ti-layout-columns"></i></div>
+            <button class="btn btn-o admin-only" onclick="addDressVariant()" style="font-size:12px"><i class="ti ti-plus"></i>Add Variant</button>
             <button class="btn btn-p" onclick="openProjectModal(null,'dress','add')"><i class="ti ti-plus"></i>Add Project</button>
           </div>
         </div>
-        <div class="dress-tabs"><div class="dtab active" onclick="switchDressStyle(0,this)">Dress 1</div><div class="dtab" onclick="switchDressStyle(1,this)">Dress 2</div><div class="dtab" onclick="switchDressStyle(2,this)">Dress 3</div></div>
+        <div class="dress-tabs" id="dress-tabs-wrap"></div>
         <div class="tab-row" style="flex-wrap:wrap"><div class="tab-btn active" onclick="switchDeptTab('dress','all',this)">All</div><div class="tab-btn" onclick="switchDeptTab('dress','In Queue',this)">In Queue</div><div class="tab-btn" onclick="switchDeptTab('dress','On-going',this)">On-going</div><div class="tab-btn" onclick="switchDeptTab('dress','Finishing',this)">Finishing</div><div class="tab-btn" onclick="switchDeptTab('dress','QC & Packed',this)">QC & Packed</div><div class="tab-btn" onclick="switchDeptTab('dress','Delivered',this)">Delivered</div><div class="tab-btn" onclick="switchDeptTab('dress','overdue',this)" style="color:#C0392B">Overdue</div></div>
         <div id="dress-content" class="proj-grid"></div>
       </div>
@@ -1378,6 +1379,7 @@ let DEPT_CFG={
 let projects={};
 
 let dressStyleIdx=0,currentRole='admin',modalMode='add',modalDept='jersey',modalProjId=null,modalPalState={},customPresets={},inventoryItems=[],chatMessages=[],_chatChannel=null;
+let dressVariants=JSON.parse(localStorage.getItem('dressVariants')||'null')||['Dress 1','Dress 2','Dress 3'];
 let feedItems=[],activeFeedDept='all',_feedChannel=null,_projChannel=null;
 let bulkSel={},calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
 const deptTabs={jersey:'all',dress:'all',merch:'all',scrub:'all'};
@@ -1434,7 +1436,7 @@ function _injectCustomDepts(){
 function getSvg(dept,colors,size,tv,fs){
   const cfg=DEPT_CFG[dept];if(!cfg)return '';
   const sk=cfg.svgKey;
-  if(sk==='dress'){const k=['dress0','dress1','dress2'][dressStyleIdx];return SVGS[k].render(colors,size);}
+  if(sk==='dress'){const k=['dress0','dress1','dress2'][dressStyleIdx%3];return SVGS[k].render(colors,size);}
   if(cfg.hasText)return SVGS[sk].render(colors,size,tv,fs);
   return SVGS[sk].render(colors,size);
 }
@@ -1450,7 +1452,7 @@ async function selectRole(r){
   startClock();loadBranding();
   await loadAllData();
   buildSettings();loadCapacityLimits();
-  renderAllDepts();renderApparelPreview();
+  renderDressTabs();renderAllDepts();renderApparelPreview();
   renderDashboardStats();renderNeedsAttention();renderPaymentSummary();
   renderActChips();renderArchive();
 }
@@ -2022,10 +2024,32 @@ function switchDeptTab(dept,tab,el){
   el.closest('.tab-row').querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
 }
-function switchDressStyle(idx,el){
+function renderDressTabs(){
+  const wrap=document.getElementById('dress-tabs-wrap');
+  if(!wrap)return;
+  wrap.innerHTML=dressVariants.map((v,i)=>
+    `<div class="dtab${i===dressStyleIdx?' active':''}" onclick="switchDressStyle(${i})">${v}${dressVariants.length>1?`<span class="dtab-del" onclick="delDressVariant(event,${i})">✕</span>`:''}</div>`
+  ).join('');
+}
+function switchDressStyle(idx){
   dressStyleIdx=idx;
-  document.querySelectorAll('.dtab').forEach(t=>t.classList.remove('active'));
-  if(el)el.classList.add('active');
+  renderDressTabs();
+  renderDept('dress');
+}
+function addDressVariant(){
+  const name=prompt('Variant name:','Dress '+(dressVariants.length+1));
+  if(!name||!name.trim())return;
+  dressVariants.push(name.trim());
+  localStorage.setItem('dressVariants',JSON.stringify(dressVariants));
+  renderDressTabs();
+}
+function delDressVariant(e,idx){
+  e.stopPropagation();
+  if(dressVariants.length<=1)return;
+  dressVariants.splice(idx,1);
+  if(dressStyleIdx>=dressVariants.length)dressStyleIdx=0;
+  localStorage.setItem('dressVariants',JSON.stringify(dressVariants));
+  renderDressTabs();
   renderDept('dress');
 }
 
