@@ -1209,6 +1209,7 @@ function showScreen(id,el){
   if(id==='dashboard'){renderDashboardStats();renderNeedsAttention();renderPaymentSummary();}
   if(id==='chat'){
     renderFeedDeptList();renderFeedHeader();renderFeed();renderActChips();renderArchive();
+    if(window.innerWidth<=768)switchActTab(activeActTab||'feed');
     const b=document.getElementById('nav-chat').querySelector('.nbadge');if(b)b.remove();
   }
   closeSidebar();
