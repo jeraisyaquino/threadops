@@ -399,7 +399,7 @@ body{font-family:var(--fu);background:var(--bg);color:var(--text);min-height:100
 }
 /* ── STATUS BADGES ── */
 .st-ov{background:#C0392B;color:#fff;}
-.st-dv{background:#E8EBF3;color:#1A2744;}
+.st-dv{background:#2E8B57;color:#fff;}
 /* ── STATUS STRIP ── */
 .sstrip{display:flex;align-items:center;width:100%;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);gap:0;}
 .ss-step{display:flex;flex-direction:column;align-items:center;gap:2px;flex:1;cursor:default;padding:0 1px;}
@@ -558,7 +558,7 @@ body.staff-mode .admin-only{display:none!important;}
 [data-theme="dark"] .st-pk{background:rgba(46,139,87,0.18);color:#5EC98B;}
 [data-theme="dark"] .st-qu{background:rgba(139,151,176,0.12);color:#8B97B0;}
 [data-theme="dark"] .st-ov{background:#C0392B;color:#fff;}
-[data-theme="dark"] .st-dv{background:rgba(100,120,180,0.12);color:#8B97B0;}
+[data-theme="dark"] .st-dv{background:#2E8B57;color:#fff;}
 /* tables */
 [data-theme="dark"] .proj-list thead tr{background:rgba(255,255,255,0.03);}
 [data-theme="dark"] .proj-list tr:hover td{background:rgba(255,255,255,0.04);}
@@ -1721,7 +1721,7 @@ function projListHTML(list,dept){
     <td><div class="proj-list-svg">${getSvg(dept,p.colors,36,p.textVal,p.fontSize)}</div></td>
     <td><strong>${p.name}</strong><div style="font-size:10px;color:var(--muted)">${p.notes||''}</div></td>
     <td>${stBadge(p)}</td>
-    <td>${(p.status==='Delivered'||p.status==='QC & Packed')?(p.dateEnd||'—'):'—'}</td>
+    <td>${p.status==='Delivered'&&p.deliveredDate?`<span style="display:inline-flex;align-items:center;gap:3px;color:#2E8B57;font-weight:600"><i class="ti ti-circle-check" style="font-size:12px"></i>${fmtShortDate(p.deliveredDate)}</span>`:(p.dateEnd?fmtShortDate(p.dateEnd):'—')}</td>
     <td>₱${(p.total||0).toLocaleString()}</td>
     <td>₱${Math.max(0,(p.total||0)-(p.dp||0)).toLocaleString()}</td>
   </tr>`).join('');
@@ -1757,7 +1757,7 @@ function projListAllHTML(list,dept){
       <td><div class="proj-list-svg">${getSvg(dept,p.colors,36,p.textVal,p.fontSize)}</div></td>
       <td><strong>${p.name}</strong><div style="font-size:10px;color:var(--muted)">${p.notes||''}</div></td>
       <td><span class="jst ${stColor(p.status)}">${p.status}</span></td>
-      <td>${(p.status==='Delivered'||p.status==='QC & Packed')?(p.dateEnd||'—'):'—'}</td>
+      <td>${p.status==='Delivered'&&p.deliveredDate?`<span style="display:inline-flex;align-items:center;gap:3px;color:#2E8B57;font-weight:600"><i class="ti ti-circle-check" style="font-size:12px"></i>${fmtShortDate(p.deliveredDate)}</span>`:(p.dateEnd?fmtShortDate(p.dateEnd):'—')}</td>
       <td>₱${(p.total||0).toLocaleString()}</td>
       <td>₱${Math.max(0,(p.total||0)-(p.dp||0)).toLocaleString()}</td>
     </tr>`).join('');
