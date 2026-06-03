@@ -10,6 +10,18 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash(git push*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx vercel deploy --prod --yes",
+            "timeout": 120
+          }
+        ]
+      }
     ]
   }
 }
