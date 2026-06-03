@@ -853,7 +853,7 @@ body.staff-mode .admin-only{display:none!important;}
             </div>
             <div class="sf" id="brand-name-section">
               <label>Company Name</label>
-              <input type="text" id="company-inp" value="DRESSUP PH*" oninput="updateBrand(this.value)">
+              <input type="text" id="company-inp" value="DRESSUP PH**" oninput="updateBrand(this.value)">
             </div>
             <div class="sf" id="brand-logo-section" style="display:none">
               <label>Company Logo</label>
@@ -2311,7 +2311,7 @@ function saveBranding(){
 }
 function loadBranding(){
   const mode=localStorage.getItem('brandMode')||'name';
-  const name=localStorage.getItem('brandName')||'DRESSUP PH*';
+  const name=localStorage.getItem('brandName')||'DRESSUP PH**';
   const logo=localStorage.getItem('brandLogo');
   const inp=document.getElementById('company-inp');if(inp)inp.value=name;
   if(mode==='logo'&&logo){
