@@ -1119,8 +1119,7 @@ async function insertTimelineEntry(projectId,eventType,oldVal,newVal){
   await _sb.from('project_timeline').insert({project_id:projectId,event_type:eventType,old_value:oldVal||null,new_value:newVal||null,changed_by:currentRole});
 }
 async function insertFeedEntry(dept,projectId,projectName,message,type){
-  const{data}=await _sb.from('activity_feed').insert({dept,project_id:projectId||null,project_name:projectName,message,type,created_by:currentRole}).select().single();
-  if(data){feedItems.unshift(data);if(!document.getElementById('screen-chat')?.classList.contains('active')){notifUnread++;updateNotifBadge();}}
+  await _sb.from('activity_feed').insert({dept,project_id:projectId||null,project_name:projectName,message,type,created_by:currentRole});
 }
 function renderDashboardStats(){
   const all=Object.values(projects).flat();
