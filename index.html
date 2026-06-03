@@ -776,13 +776,20 @@ body.staff-mode .admin-only{display:none!important;}
             </div>
           </div>
         </div>
-        <div class="tab-row" style="flex-wrap:wrap">
+        <div class="tab-row" style="flex-wrap:wrap" id="ap-status-tabs">
           <div class="tab-btn active" onclick="setApparelTab('all',this)">All</div>
           <div class="tab-btn" onclick="setApparelTab('In Queue',this)">In Queue</div>
           <div class="tab-btn" onclick="setApparelTab('On-going',this)">On-going</div>
           <div class="tab-btn" onclick="setApparelTab('Finishing',this)">Finishing</div>
           <div class="tab-btn" onclick="setApparelTab('QC & Packed',this)">QC & Packed</div>
           <div class="tab-btn" onclick="setApparelTab('Delivered',this)">Delivered</div>
+        </div>
+        <div class="tab-row" style="flex-wrap:wrap;margin-top:6px" id="ap-dept-tabs">
+          <div class="tab-btn active" onclick="setApparelDept('all',this)">All Depts</div>
+          <div class="tab-btn" onclick="setApparelDept('jersey',this)"><span class="ddot" style="background:#E85D26;margin-right:4px"></span><span class="dl-0">Jersey</span></div>
+          <div class="tab-btn" onclick="setApparelDept('dress',this)"><span class="ddot" style="background:#9B59B6;margin-right:4px"></span><span class="dl-1">Dress</span></div>
+          <div class="tab-btn" onclick="setApparelDept('merch',this)"><span class="ddot" style="background:#F0A500;margin-right:4px"></span><span class="dl-2">Merch</span></div>
+          <div class="tab-btn" onclick="setApparelDept('scrub',this)"><span class="ddot" style="background:#2E8B57;margin-right:4px"></span><span class="dl-3">Scrub</span></div>
         </div>
         <div id="apparel-preview-content"></div>
       </div>
@@ -1318,7 +1325,7 @@ let feedItems=[],activeFeedDept='all',_feedChannel=null,_projChannel=null;
 let bulkSel={},calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
 const deptTabs={jersey:'all',dress:'all',merch:'all',scrub:'all'};
 const deptViews={jersey:'grid',dress:'grid',merch:'grid',scrub:'grid'};
-let apparelView='grid',apparelTab='all';
+let apparelView='grid',apparelTab='all',apparelDept='all';
 
 // ══ SVG HELPER ══
 function getSvg(dept,colors,size,tv,fs){
@@ -1779,7 +1786,13 @@ function setApparelView(v){
 }
 function setApparelTab(tab,el){
   apparelTab=tab;
-  document.querySelectorAll('#screen-apparel .tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('#ap-status-tabs .tab-btn').forEach(b=>b.classList.remove('active'));
+  if(el)el.classList.add('active');
+  renderApparelPreview();
+}
+function setApparelDept(dept,el){
+  apparelDept=dept;
+  document.querySelectorAll('#ap-dept-tabs .tab-btn').forEach(b=>b.classList.remove('active'));
   if(el)el.classList.add('active');
   renderApparelPreview();
 }
@@ -1915,7 +1928,7 @@ function switchDressStyle(idx,el){
 function renderApparelPreview(){
   const cont=document.getElementById('apparel-preview-content');
   if(!cont)return;
-  const depts=['jersey','dress','merch','scrub'];
+  const depts=(apparelDept==='all'?['jersey','dress','merch','scrub']:[apparelDept]);
   const dnames={jersey:'Jersey Sublimation',dress:'Custom Dress',merch:'Merchandise',scrub:'Scrub Suits'};
   const dcols={jersey:'#E85D26',dress:'#9B59B6',merch:'#F0A500',scrub:'#2E8B57'};
   const statusOrder=VISIBLE_STATUSES;
