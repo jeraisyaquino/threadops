@@ -341,16 +341,17 @@ body{font-family:var(--fu);background:var(--bg);color:var(--text);min-height:100
 .arc-f.active,.arc-f:hover{background:var(--nav);color:#fff;border-color:var(--nav);}
 .arc-custom{display:none;align-items:center;gap:6px;margin-top:8px;}
 .arc-custom input{border:1px solid var(--border);border-radius:7px;padding:4px 7px;font-size:11px;color:var(--text);background:var(--bg);flex:1;}
-.arc-list{flex:1;overflow-y:auto;padding:10px 12px;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;align-content:start;}
-.arc-item{display:flex;flex-direction:column;border-radius:12px;cursor:pointer;border:1px solid var(--border);background:var(--card);transition:all .12s;overflow:hidden;}
-.arc-item:hover{box-shadow:var(--shadow-sm);border-color:rgba(26,39,68,.18);transform:translateY(-1px);}
-.arc-svg-wrap{display:flex;align-items:center;justify-content:center;padding:12px 8px 6px;background:var(--bg);}
-.arc-info{padding:8px 10px 10px;}
+.arc-list{flex:1;overflow-y:auto;padding:0;display:flex;flex-direction:column;}
+.arc-item{display:flex;align-items:center;gap:10px;cursor:pointer;border-bottom:1px solid var(--border);background:var(--card);transition:background .1s;padding:10px 14px 10px 0;min-height:52px;}
+.arc-item:hover{background:var(--bg);}
+.arc-bar{width:3px;height:34px;border-radius:2px;flex-shrink:0;margin-left:12px;}
+.arc-main{flex:1;min-width:0;}
 .arc-name{font-size:12px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.arc-date{font-size:10px;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:3px;}
-.arc-notes{font-size:10px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.arc-dept{font-size:10px;font-weight:600;margin-top:4px;}
-.arc-empty{text-align:center;color:var(--muted);padding:2.5rem 1rem;font-size:12px;line-height:1.6;grid-column:1/-1;}
+.arc-client{font-size:10px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.arc-dept-tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;flex-shrink:0;white-space:nowrap;}
+.arc-delivered{font-size:11px;color:#2E8B57;font-weight:600;display:flex;align-items:center;gap:3px;flex-shrink:0;white-space:nowrap;}
+.arc-total{font-size:12px;font-weight:700;color:var(--text);flex-shrink:0;min-width:64px;text-align:right;}
+.arc-empty{text-align:center;color:var(--muted);padding:2.5rem 1rem;font-size:12px;line-height:1.6;}
 /* Tab bar (mobile/tablet only) */
 .act-tabbar{display:none;border-bottom:1px solid var(--border);background:var(--card);flex-shrink:0;}
 .act-tab{flex:1;padding:11px 8px;border:none;background:transparent;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;border-bottom:2px solid transparent;transition:all .15s;}
@@ -1526,17 +1527,18 @@ function renderArchive(){
   el.innerHTML=filtered.map(p=>{
     const col=DC[p._dept]||'#7A8099';
     const dn=DN[p._dept]||p._dept;
-    const svg=getSvg(p._dept,p.colors,56,p.textVal,p.fontSize)||'';
-    const dateLabel=p.dateEnd?new Date(p.dateEnd+'T00:00:00').toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}):'No date';
-    const pcs=p.notes||'';
+    const dvDate=p.deliveredDate||p.dateEnd;
+    const dvLabel=dvDate?new Date(dvDate+'T00:00:00').toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'}):'—';
+    const total=p.total?'₱'+Number(p.total).toLocaleString():'—';
     return`<div class="arc-item" onclick="openProjectModal('${p.id}','${p._dept}','view')">
-      <div class="arc-svg-wrap">${svg}</div>
-      <div class="arc-info">
+      <div class="arc-bar" style="background:${col}"></div>
+      <div class="arc-main">
         <div class="arc-name">${p.name}</div>
-        <div class="arc-date"><i class="ti ti-circle-check" style="font-size:11px;color:#2E8B57"></i>${dateLabel}</div>
-        ${pcs?`<div class="arc-notes">${pcs}</div>`:''}
-        <div class="arc-dept" style="color:${col}">${dn}</div>
+        ${p.contact?`<div class="arc-client">${p.contact}</div>`:''}
       </div>
+      <div class="arc-dept-tag" style="color:${col};background:${col}22">${dn}</div>
+      <div class="arc-delivered"><i class="ti ti-circle-check" style="font-size:12px"></i>${dvLabel}</div>
+      <div class="arc-total">${total}</div>
     </div>`;
   }).join('');
 }
