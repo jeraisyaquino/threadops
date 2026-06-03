@@ -2181,7 +2181,7 @@ async function advanceProjectStatus(e,id,dept,toStatus){
   const updates={status:next};
   const today=todayPH();
   if(next==='On-going'&&!p.dateStart)updates.date_start=today;
-  if(next==='Delivered'&&!p.deliveredDate){updates.delivered_date=today;updates.delivered_at=new Date().toISOString();}
+  if(next==='Delivered'){if(!p.deliveredDate)updates.delivered_date=today;if(!p.deliveredAt)updates.delivered_at=new Date().toISOString();}
   projects[dept][idx]={...p,status:next,
     dateStart:updates.date_start||p.dateStart,
     deliveredDate:updates.delivered_date||p.deliveredDate,
@@ -2942,7 +2942,7 @@ async function doBulkStatus(newStatus){
     const old=proj.status;
     const upd={status:newStatus};
     if(newStatus==='On-going'&&!proj.dateStart)upd.date_start=today;
-    if(newStatus==='Delivered'&&!proj.deliveredDate){upd.delivered_date=today;upd.delivered_at=new Date().toISOString();}
+    if(newStatus==='Delivered'){if(!proj.deliveredDate)upd.delivered_date=today;if(!proj.deliveredAt)upd.delivered_at=new Date().toISOString();}
     await _sb.from('projects').update(upd).eq('id',id);
     const idx=projects[dept].findIndex(p=>p.id===id);
     if(idx>-1)projects[dept][idx]={...projects[dept][idx],status:newStatus,dateStart:upd.date_start||projects[dept][idx].dateStart,deliveredDate:upd.delivered_date||projects[dept][idx].deliveredDate,deliveredAt:upd.delivered_at||projects[dept][idx].deliveredAt};
