@@ -15,7 +15,7 @@
 
 ## Git Commit & Wrap-Up Reminder
 - Whenever a feature is complete, print this EXACT message at the end of your response — do not skip it:
-  "👉 **Changes are ready to commit! Once you commit and push, please type `/clear` to wipe the session history and save your tokens.**"
+  "👉 **Changes are committed and pushed, please type `/clear` to wipe the session history and save your tokens.**"
 
 ## Git Commit & Push — Always Ask First
 - NEVER run `git commit` or `git push` automatically, even if the user says "yes commit and push" in chat.
