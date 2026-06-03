@@ -1927,7 +1927,8 @@ function renderDept(dept){
   if(tab==='all'){
     el.innerHTML=v==='grid'?projGridAllHTML(list,dept):projListAllHTML(list,dept);
   }else{
-    el.innerHTML=v==='grid'?(list.length?list.map(p=>projCardHTML(p,dept)).join(''):'<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:2rem;font-size:13px">No projects</div>'):projListHTML(list,dept);
+    const sorted=tab==='Delivered'?[...list].sort((a,b)=>(b.deliveredAt||b.deliveredDate||'').localeCompare(a.deliveredAt||a.deliveredDate||'')):tab==='overdue'?[...list].sort((a,b)=>(a.dateEnd||'').localeCompare(b.dateEnd||'')):([...list].sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')));
+    el.innerHTML=v==='grid'?(sorted.length?sorted.map(p=>projCardHTML(p,dept)).join(''):'<div style="grid-column:1/-1;text-align:center;color:var(--muted);padding:2rem;font-size:13px">No projects</div>'):projListHTML(sorted,dept);
   }
   if(v==='grid')attachCardListeners(el,dept);else attachListListeners(el,dept);
 }
@@ -1990,7 +1991,7 @@ function projGridAllHTML(list,dept){
   let html='';
   order.forEach(status=>{
     const grp=list.filter(p=>p.status===status);
-    if(status==='Delivered')grp.sort((a,b)=>(b.delivered_at||b.delivered_date||'').localeCompare(a.delivered_at||a.delivered_date||''));else grp.sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''));
+    if(status==='Delivered')grp.sort((a,b)=>(b.deliveredAt||b.deliveredDate||'').localeCompare(a.deliveredAt||a.deliveredDate||''));else grp.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
     if(!grp.length)return;
     html+=`<div style="grid-column:1/-1;display:flex;align-items:center;gap:8px;margin-top:4px;margin-bottom:2px"><span class="jst ${stColor(status)}" style="font-size:11px">${labels[status]}</span><div style="flex:1;height:.5px;background:var(--border)"></div></div>`;
     html+=grp.map(p=>projCardHTML(p,dept)).join('');
@@ -2004,7 +2005,7 @@ function projListAllHTML(list,dept){
   let rows='',hasAny=false;
   order.forEach(status=>{
     const grp=list.filter(p=>p.status===status);
-    if(status==='Delivered')grp.sort((a,b)=>(b.delivered_at||b.delivered_date||'').localeCompare(a.delivered_at||a.delivered_date||''));else grp.sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''));
+    if(status==='Delivered')grp.sort((a,b)=>(b.deliveredAt||b.deliveredDate||'').localeCompare(a.deliveredAt||a.deliveredDate||''));else grp.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
     if(!grp.length)return;
     hasAny=true;
     rows+=`<tr><td colspan="7" style="padding:14px 14px 7px;background:var(--bg);border-top:2px solid var(--border)"><span class="jst ${stColor(status)}" style="font-size:10px">${status}</span></td></tr>`;
@@ -2057,7 +2058,7 @@ function renderApparelPreview(){
   let html='';
   depts.forEach(dept=>{
     let list=projects[dept];
-    if(apparelTab!=='all')list=list.filter(p=>p.status===apparelTab);
+    if(apparelTab!=='all'){list=list.filter(p=>p.status===apparelTab);list=apparelTab==='Delivered'?[...list].sort((a,b)=>(b.deliveredAt||b.deliveredDate||'').localeCompare(a.deliveredAt||a.deliveredDate||'')):([...list].sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')));}
     if(!list.length)return;
     const isCustomer=dept==='dress'||dept==='scrub';
     html+=`<div class="ap-section"><div class="ap-section-hdr"><span class="ap-section-dot" style="background:${dcols[dept]}"></span><span class="ap-section-title">${dnames[dept]}</span></div>`;
@@ -2066,7 +2067,7 @@ function renderApparelPreview(){
         html+=`<div class="proj-grid ap-dept-grid" data-dept="${dept}">`;
         statusOrder.forEach(status=>{
           const grp=list.filter(p=>p.status===status);
-          if(status==='Delivered')grp.sort((a,b)=>(b.delivered_at||b.delivered_date||'').localeCompare(a.delivered_at||a.delivered_date||''));else grp.sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''));
+          if(status==='Delivered')grp.sort((a,b)=>(b.deliveredAt||b.deliveredDate||'').localeCompare(a.deliveredAt||a.deliveredDate||''));else grp.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
           if(!grp.length)return;
           html+=`<div style="grid-column:1/-1;display:flex;align-items:center;gap:8px;margin-top:4px;margin-bottom:2px"><span class="jst ${stColor(status)}" style="font-size:11px">${status}</span><div style="flex:1;height:.5px;background:var(--border)"></div></div>`;
           html+=grp.map(p=>`<div class="proj-card" data-id="${p.id}" data-dept="${dept}"><span class="proj-card-status"><span class="jst ${stColor(p.status)}">${p.status}</span></span><div class="proj-card-svg">${getSvg(dept,p.colors,80,p.textVal,p.fontSize)}</div><div class="proj-card-contact" style="font-weight:700;color:var(--text)">${p.contact}</div>${p.pcs?`<div class="proj-card-contact">${p.pcs} pcs</div>`:''}</div>`).join('');
@@ -2080,7 +2081,7 @@ function renderApparelPreview(){
         let trows='';
         statusOrder.forEach(status=>{
           const grp=list.filter(p=>p.status===status);
-          if(status==='Delivered')grp.sort((a,b)=>(b.delivered_at||b.delivered_date||'').localeCompare(a.delivered_at||a.delivered_date||''));else grp.sort((a,b)=>(b.created_at||'').localeCompare(a.created_at||''));
+          if(status==='Delivered')grp.sort((a,b)=>(b.deliveredAt||b.deliveredDate||'').localeCompare(a.deliveredAt||a.deliveredDate||''));else grp.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
           if(!grp.length)return;
           trows+=`<tr><td colspan="6" style="padding:14px 14px 7px;background:var(--bg);border-top:2px solid var(--border)"><span class="jst ${stColor(status)}" style="font-size:10px">${status}</span></td></tr>`;
           trows+=grp.map(p=>`<tr data-id="${p.id}" data-dept="${dept}"><td><div class="proj-list-svg">${getSvg(dept,p.colors,36,p.textVal,p.fontSize)}</div></td><td><strong>${p.name}</strong></td><td><span class="jst ${stColor(p.status)}">${p.status}</span></td><td>${p.status==='Packed'?(p.dateEnd||'—'):'—'}</td><td>₱${(p.total||0).toLocaleString()}</td><td>₱${Math.max(0,(p.total||0)-(p.dp||0)).toLocaleString()}</td></tr>`).join('');
