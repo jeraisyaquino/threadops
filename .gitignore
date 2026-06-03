@@ -1,1 +1,5 @@
-.vercel
+.vercel/
+dist/
+build/
+.next/
+node_modules/
