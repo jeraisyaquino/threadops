@@ -1073,6 +1073,20 @@ body.staff-mode .admin-only{display:none!important;}
   </div>
 </div>
 
+<div class="modal-overlay" id="pay-modal">
+  <div class="inv-modal" style="width:min(360px,96vw);padding:1.5rem">
+    <div class="inv-modal-title" style="font-size:18px">Log Payment</div>
+    <button class="inv-modal-close" onclick="closeModal('pay-modal')">×</button>
+    <div style="margin-top:1rem">
+      <input type="number" id="pay-log-amt" min="0" placeholder="Amount (₱)" style="width:100%;box-sizing:border-box;padding:10px 12px;border:.5px solid var(--border);border-radius:10px;font-size:15px;font-family:var(--fu);background:var(--card);color:var(--text);outline:none">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:1rem">
+      <button id="pay-record-btn" class="btn btn-p" style="flex:1;font-weight:600;box-shadow:0 2px 8px rgba(232,93,38,.25)"><i class="ti ti-circle-check"></i> Record</button>
+      <button class="btn btn-o" onclick="closeModal('pay-modal')" style="flex-shrink:0">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script>
 // ── Supabase ──
@@ -2586,14 +2600,14 @@ function payBadge(proj){
   return'<span class="pbadge unpaid">Unpaid</span>';
 }
 function showPayLogger(projId,dept){
-  const footer=document.getElementById('pm-footer');
-  footer.innerHTML=`<div style="display:flex;gap:8px;align-items:center;width:100%;flex-wrap:wrap">
-    <span style="font-size:12px;font-weight:600;color:var(--text);flex-shrink:0">Add payment:</span>
-    <input type="number" id="pay-log-amt" min="0" placeholder="Amount (₱)" style="flex:1;min-width:100px;padding:7px 10px;border:.5px solid var(--border);border-radius:8px;font-size:13px;font-family:var(--fu);background:var(--card);color:var(--text);outline:none" onkeydown="if(event.key==='Enter')recordPayment('${projId}','${dept}')">
-    <button class="btn btn-p" onclick="recordPayment('${projId}','${dept}')" style="flex-shrink:0;font-weight:600;box-shadow:0 2px 8px rgba(232,93,38,.25)"><i class="ti ti-circle-check"></i> Record</button>
-    <button class="btn btn-o" onclick="openProjectModal('${projId}','${dept}','view')" style="flex-shrink:0">Cancel</button>
-  </div>`;
-  setTimeout(()=>document.getElementById('pay-log-amt')?.focus(),50);
+  const modal=document.getElementById('pay-modal');
+  const inp=document.getElementById('pay-log-amt');
+  const btn=document.getElementById('pay-record-btn');
+  inp.value='';
+  btn.onclick=()=>recordPayment(projId,dept);
+  inp.onkeydown=e=>{if(e.key==='Enter')recordPayment(projId,dept);};
+  modal.classList.add('open');
+  setTimeout(()=>inp?.focus(),80);
 }
 async function recordPayment(projId,dept){
   const amt=parseFloat(document.getElementById('pay-log-amt')?.value)||0;
@@ -2609,6 +2623,7 @@ async function recordPayment(projId,dept){
     insertFeedEntry(dept,projId,proj.name,'Payment ₱'+amt.toLocaleString()+' logged for '+proj.name,'note')
   ]);
   renderPaymentSummary();renderDashboardStats();
+  closeModal('pay-modal');
   showToast('₱'+amt.toLocaleString()+' recorded',{icon:'ti-cash',iconBg:'#E9F5EE',iconColor:'#2E8B57'});
   openProjectModal(projId,dept,'view');
 }
