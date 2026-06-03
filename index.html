@@ -1254,7 +1254,8 @@ function rtRowToProject(row){
     total:row.total||0,dp:row.dp||0,
     status:row.status||'In Queue',notes:row.notes||'',
     colors:typeof row.colors==='string'?JSON.parse(row.colors):(row.colors||{}),
-    textVal:row.text_val||'',fontSize:row.font_size||7};
+    textVal:row.text_val||'',fontSize:row.font_size||7,
+    pcs:row.pcs||null,jerseyType:row.jersey_type||null};
 }
 function setupChannels(){
   _projChannel=_rtSb.channel('rt-projects')
