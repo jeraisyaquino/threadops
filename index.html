@@ -995,8 +995,10 @@ function showToast(msg,opts){
   t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2800);
 }
 function stColor(s){const m={'In Queue':'st-qu','On-going':'st-on','Finishing':'st-fi','QC & Packed':'st-pk','Delivered':'st-dv'};return m[s]||'st-qu';}
+function todayPH(){return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Manila'});}
+function fmtShortDate(d){if(!d)return'';const[y,m,day]=d.split('-');return new Date(+y,+m-1,+day).toLocaleDateString('en-PH',{month:'short',day:'numeric'});}
 function isOverdue(p){
-  if(p.status==='Delivered'||p.status==='QC & Packed'||!p.dateEnd)return false;
+  if(p.status==='Delivered'||!p.dateEnd)return false;
   return new Date(p.dateEnd)<new Date(new Date().toDateString());
 }
 function stBadge(p){
@@ -1043,7 +1045,7 @@ function renderNeedsAttention(){
   const all=Object.values(projects).flat();
   const items=[];
   all.filter(p=>isOverdue(p)).forEach(p=>{const dept=Object.keys(projects).find(d=>projects[d].includes(p));items.push({type:'overdue',p,dept});});
-  all.filter(p=>p.status!=='Delivered'&&p.status!=='QC & Packed'&&p.dateEnd&&!isOverdue(p)&&new Date(p.dateEnd)<=in7).forEach(p=>{const dept=Object.keys(projects).find(d=>projects[d].includes(p));items.push({type:'due',p,dept});});
+  all.filter(p=>p.status!=='Delivered'&&p.dateEnd&&!isOverdue(p)&&new Date(p.dateEnd)<=in7).forEach(p=>{const dept=Object.keys(projects).find(d=>projects[d].includes(p));items.push({type:'due',p,dept});});
   inventoryItems.filter(i=>(i.stock||0)<(i.min_stock||0)).forEach(i=>items.push({type:'stock',i}));
   const top=items.slice(0,5);
   if(!top.length){el.innerHTML='';return;}
@@ -1066,6 +1068,7 @@ function renderNeedsAttention(){
 function dbToProject(row){
   return{id:row.id,name:row.name||'',contact:row.contact||'',phone:row.phone||'',
     dateStart:row.date_start||'',dateEnd:row.date_end||'',
+    projectedDateEnd:row.projected_date_end||'',deliveredDate:row.delivered_date||'',
     total:row.total||0,dp:row.dp||0,status:row.status||'In Queue',
     notes:row.notes||'',colors:row.colors||{},textVal:row.text_val||'',fontSize:row.font_size||7,
     designFileUrl:row.design_file_url||null};
@@ -1073,6 +1076,7 @@ function dbToProject(row){
 function projectToDb(proj,dept){
   return{id:proj.id,dept,name:proj.name,contact:proj.contact||'',phone:proj.phone||'',
     date_start:proj.dateStart||null,date_end:proj.dateEnd||null,
+    projected_date_end:proj.projectedDateEnd||null,delivered_date:proj.deliveredDate||null,
     total:proj.total||0,dp:proj.dp||0,status:proj.status||'In Queue',
     notes:proj.notes||'',colors:proj.colors||{},text_val:proj.textVal||'',font_size:proj.fontSize||7};
 }
@@ -1100,7 +1104,9 @@ function renderInventory(items){
 }
 function rtRowToProject(row){
   return{id:row.id,dept:row.dept,name:row.name,contact:row.contact||'',phone:row.phone||'',
-    dateStart:row.date_start,dateEnd:row.date_end,total:row.total||0,dp:row.dp||0,
+    dateStart:row.date_start||'',dateEnd:row.date_end||'',
+    projectedDateEnd:row.projected_date_end||'',deliveredDate:row.delivered_date||'',
+    total:row.total||0,dp:row.dp||0,
     status:row.status||'In Queue',notes:row.notes||'',
     colors:typeof row.colors==='string'?JSON.parse(row.colors):(row.colors||{}),
     textVal:row.text_val||'',fontSize:row.font_size||7};
@@ -1343,11 +1349,13 @@ const ABR={'In Queue':'Queue','On-going':'Active','Finishing':'Finish','QC & Pac
 const CC={'In Queue':'#F0F1F5','On-going':'#FEF0E9','Finishing':'#FEF7E6','QC & Packed':'#E9F5EE','Delivered':'#E8EBF3'};
 const CT={'In Queue':'#7A8099','On-going':'#E85D26','Finishing':'#7A5A00','QC & Packed':'#2E8B57','Delivered':'#1A2744'};
 let projects=[],dragId=null;
+function todayPH(){return new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Manila'});}
+function fmtShort(d){if(!d)return'';const[y,m,day]=d.split('-');return new Date(+y,+m-1,+day).toLocaleDateString('en-PH',{month:'short',day:'numeric'});}
 function ov(p){return p.status!=='Delivered'&&p.date_end&&new Date(p.date_end)<new Date(new Date().toDateString());}
 function strip(s){const ci=VS.indexOf(s);let h='<div class="sstrip">';VS.forEach((x,i)=>{const c=i<ci?'ss-done':i===ci?'ss-cur':'';h+=\`<div class="ss-step \${c}"><div class="ss-dot"></div><div class="ss-lbl">\${ABR[x]}</div></div>\`;if(i<VS.length-1)h+=\`<div class="ss-line \${i<ci?'done':''}"></div>\`;});return h+'</div>';}
 function getSvgCard(p){try{const op=window.opener;if(!op||!op._SVGS)return'';const c=p.colors||{};if(DEPT==='jersey')return op._SVGS.jersey.render(c,60,p.text_val||'',p.font_size||7);if(DEPT==='dress')return op._SVGS['dress0'].render(c,50);if(DEPT==='merch')return op._SVGS.merch.render(c,60,p.text_val||'',36);if(DEPT==='scrub')return op._SVGS.scrub.render(c,54);return'';}catch(e){return'';}}
-function render(){const b=document.getElementById('board');b.innerHTML=VS.map(st=>{const cards=projects.filter(p=>p.status===st);const ch=cards.length?cards.map(p=>{const svg=getSvgCard(p);return\`<div class="bc" draggable="true" data-id="\${p.id}"><button class="b-eye" onclick="openTl('\${p.id}',event)" title="View Timeline"><i class="ti ti-eye"></i></button>\${svg?\`<div class="bsvg">\${svg}</div>\`:''}<div class="bn">\${p.name}</div><div class="bsub">\${p.contact||''}</div>\${p.date_end?\`<div class="bdate \${ov(p)?'ov':''}">\${ov(p)?'⚠ ':''}\${p.date_end}</div>\`:''}\${strip(p.status)}</div>\`;}).join(''):'<div class="empty">Empty</div>';return\`<div class="col"><div class="col-h" style="background:\${CC[st]};color:\${CT[st]}">\${st}<span style="font-size:10px;font-family:DM Sans,sans-serif;opacity:.6">\${cards.length}</span></div><div class="col-b" data-s="\${st}">\${ch}</div></div>\`;}).join('');listen();}
-async function doMove(id,ns){const p=projects.find(x=>x.id===id);if(!p||p.status===ns)return;const os=p.status;p.status=ns;render();await _sb.from('projects').update({status:ns}).eq('id',id);await Promise.all([_sb.from('project_timeline').insert({project_id:id,event_type:'status_change',old_value:os,new_value:ns,changed_by:'board'}),_sb.from('activity_feed').insert({dept:DEPT,project_id:id,project_name:p.name,message:p.name+' moved from '+os+' to '+ns,type:'status_update'})]);}
+function render(){const b=document.getElementById('board');b.innerHTML=VS.map(st=>{const cards=projects.filter(p=>p.status===st);const ch=cards.length?cards.map(p=>{const svg=getSvgCard(p);return\`<div class="bc" draggable="true" data-id="\${p.id}"><button class="b-eye" onclick="openTl('\${p.id}',event)" title="View Timeline"><i class="ti ti-eye"></i></button>\${svg?\`<div class="bsvg">\${svg}</div>\`:''}<div class="bn">\${p.name}</div><div class="bsub">\${p.contact||''}</div>\${p.status==='Delivered'&&p.delivered_date?\`<div class="bdate" style="color:#2E8B57"><i class="ti ti-circle-check" style="font-size:11px"></i> \${fmtShort(p.delivered_date)}</div>\`:p.date_end?\`<div class="bdate \${ov(p)?'ov':''}">\${ov(p)?'⚠ ':''}\${p.date_end}</div>\`:''}\${strip(p.status)}</div>\`;}).join(''):'<div class="empty">Empty</div>';return\`<div class="col"><div class="col-h" style="background:\${CC[st]};color:\${CT[st]}">\${st}<span style="font-size:10px;font-family:DM Sans,sans-serif;opacity:.6">\${cards.length}</span></div><div class="col-b" data-s="\${st}">\${ch}</div></div>\`;}).join('');listen();}
+async function doMove(id,ns){const p=projects.find(x=>x.id===id);if(!p||p.status===ns)return;const os=p.status;const updates={status:ns};const today=todayPH();if(ns==='On-going'&&!p.date_start)updates.date_start=today;if(ns==='Delivered'&&!p.delivered_date)updates.delivered_date=today;if(updates.date_start)p.date_start=updates.date_start;if(updates.delivered_date)p.delivered_date=updates.delivered_date;p.status=ns;render();await _sb.from('projects').update(updates).eq('id',id);await Promise.all([_sb.from('project_timeline').insert({project_id:id,event_type:'status_change',old_value:os,new_value:ns,changed_by:'board'}),_sb.from('activity_feed').insert({dept:DEPT,project_id:id,project_name:p.name,message:p.name+' moved from '+os+' to '+ns,type:'status_update'})]);}
 function listen(){
   document.querySelectorAll('.bc').forEach(c=>{c.addEventListener('dragstart',e=>{dragId=c.dataset.id;c.classList.add('dragging');});c.addEventListener('dragend',()=>{dragId=null;document.querySelectorAll('.bc').forEach(x=>x.classList.remove('dragging'));});});
   document.querySelectorAll('.col-b').forEach(col=>{col.addEventListener('dragover',e=>{e.preventDefault();col.classList.add('over');});col.addEventListener('dragleave',()=>col.classList.remove('over'));col.addEventListener('drop',async e=>{e.preventDefault();col.classList.remove('over');await doMove(dragId,col.dataset.s);});});
@@ -1684,11 +1692,13 @@ function buildStrip(p,dept){
 function projCardHTML(p,dept){
   const svgStr=getSvg(dept,p.colors,80,p.textVal,p.fontSize);
   const notes=p.notes?`<div class="proj-card-notes">${p.notes}</div>`:'';
+  const deliveredRow=p.status==='Delivered'&&p.deliveredDate?`<div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#2E8B57;font-weight:600;margin:3px 0 1px"><i class="ti ti-circle-check" style="font-size:11px"></i>Delivered · ${fmtShortDate(p.deliveredDate)}</div>`:'';
   return `<div class="proj-card" data-id="${p.id}">
     <span class="proj-card-status">${stBadge(p)}</span>
     <div class="proj-card-svg">${svgStr}</div>
     <div class="proj-card-name">${p.name}</div>
     <div class="proj-card-contact">${p.contact}</div>
+    ${deliveredRow}
     ${notes}
     ${buildStrip(p,dept)}
   </div>`;
@@ -1899,8 +1909,14 @@ async function advanceProjectStatus(e,id,dept,toStatus){
   const p=projects[dept][idx];
   const next=toStatus||STATUS_NEXT[p.status];if(!next)return;
   const old=p.status;
-  projects[dept][idx]={...p,status:next};
-  const{error}=await _sb.from('projects').update({status:next}).eq('id',id);
+  const updates={status:next};
+  const today=todayPH();
+  if(next==='On-going'&&!p.dateStart)updates.date_start=today;
+  if(next==='Delivered'&&!p.deliveredDate)updates.delivered_date=today;
+  projects[dept][idx]={...p,status:next,
+    dateStart:updates.date_start||p.dateStart,
+    deliveredDate:updates.delivered_date||p.deliveredDate};
+  const{error}=await _sb.from('projects').update(updates).eq('id',id);
   if(error){showToast('Update failed');projects[dept][idx]={...p};return;}
   await Promise.all([
     insertTimelineEntry(id,'status_change',old,next),
@@ -1915,16 +1931,22 @@ async function saveProject(){
   const name=document.getElementById('pf-name')?.value.trim()||'';
   const contact=document.getElementById('pf-contact')?.value.trim()||'';
   const phone=document.getElementById('pf-phone')?.value.trim()||'';
-  const dateStart=document.getElementById('pf-start')?.value||'';
   const dateEnd=document.getElementById('pf-end')?.value||'';
+  const projectedDateEnd=document.getElementById('pf-end2')?.value||'';
   const total=parseFloat(document.getElementById('pf-total')?.value)||0;
   const dp=parseFloat(document.getElementById('pf-dp')?.value)||0;
   const status=document.getElementById('pf-status')?.value||'In Queue';
   const notes=document.getElementById('pf-notes')?.value.trim()||'';
   if(!name){document.getElementById('pf-name')?.focus();showToast('Please enter a name');return;}
+  const prev=modalMode==='edit'?projects[modalDept].find(p=>p.id===modalProjId):null;
+  const today=todayPH();
+  let dateStart=prev?.dateStart||'';
+  let deliveredDate=document.getElementById('pf-delivered')?.value||prev?.deliveredDate||'';
+  if(status==='On-going'&&!dateStart)dateStart=today;
+  if(status==='Delivered'&&!deliveredDate)deliveredDate=today;
   const colors={};
   cfg.zones.forEach(z=>colors[z.key]=modalPalState[z.key]||z.init);
-  const pd={name,contact,phone,dateStart,dateEnd,total,dp,status,notes,colors,textVal:modalPalState.textVal||'',fontSize:modalPalState.fontSize||7};
+  const pd={name,contact,phone,dateStart,dateEnd,projectedDateEnd,deliveredDate,total,dp,status,notes,colors,textVal:modalPalState.textVal||'',fontSize:modalPalState.fontSize||7};
   if(modalMode==='add'){
     pd.id=crypto.randomUUID();
     projects[modalDept].push(pd);
@@ -1935,7 +1957,6 @@ async function saveProject(){
       insertFeedEntry(modalDept,pd.id,name,`New project added: ${name}`,'created')
     ]);
   }else{
-    const prev=projects[modalDept].find(p=>p.id===modalProjId);
     const oldStatus=prev?.status;
     const idx=projects[modalDept].findIndex(p=>p.id===modalProjId);
     if(idx>-1)projects[modalDept][idx]={...projects[modalDept][idx],...pd};
@@ -2092,7 +2113,9 @@ function renderFieldsRight(dept,cfg,proj,mode){
       ${textInfo}
       <div class="view-row"><label>Person in Contact</label><div class="vv">${proj.contact}</div></div>
       <div class="view-row"><label>Contact Number</label><div class="vv">${proj.phone}</div></div>
-      <div class="view-row"><label>Finish Date Range</label><div class="vv">${proj.dateStart||'—'} → ${proj.dateEnd||'—'}</div></div>
+      <div class="view-row"><label>Start Date</label><div class="vv">${proj.dateStart?fmtShortDate(proj.dateStart):'—'}</div></div>
+      <div class="view-row"><label>Projected / Due Date</label><div class="vv">${proj.dateEnd?fmtShortDate(proj.dateEnd)+(proj.projectedDateEnd?' – '+fmtShortDate(proj.projectedDateEnd):''):'—'}</div></div>
+      ${proj.deliveredDate?`<div class="view-row"><label>Delivered Date</label><div class="vv" style="display:flex;align-items:center;gap:5px;color:#2E8B57;font-weight:600"><i class="ti ti-circle-check" style="font-size:13px"></i>${fmtShortDate(proj.deliveredDate)}</div></div>`:''}
       <div class="view-row"><label>Total Payment</label><div class="vv">₱${(proj.total||0).toLocaleString()}</div></div>
       <div class="view-row"><label>Downpayment</label><div class="vv">₱${(proj.dp||0).toLocaleString()}</div></div>
       <div class="view-row"><label>Balance</label><div class="vv">₱${((proj.total||0)-(proj.dp||0)).toLocaleString()}</div></div>
@@ -2105,7 +2128,7 @@ function renderFieldsRight(dept,cfg,proj,mode){
         <div style="flex:1;min-width:0">
           <div style="font-family:var(--fs);font-size:20px;font-weight:800;letter-spacing:.3px;line-height:1.1">${proj.name}</div>
           <div style="font-size:12px;color:var(--muted);margin-top:4px">${proj.contact||'—'}</div>
-          <div style="margin-top:6px">${stBadge(proj)}</div>
+          <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;align-items:center">${stBadge(proj)}${proj.deliveredDate?`<span style="display:inline-flex;align-items:center;gap:3px;font-size:11px;color:#2E8B57;font-weight:600"><i class="ti ti-circle-check" style="font-size:12px"></i>${fmtShortDate(proj.deliveredDate)}</span>`:''}</div>
         </div>
         ${dept!=='dress'&&proj.designFileUrl?`<div style="display:flex;flex-direction:column;align-items:center;gap:6px;flex-shrink:0"><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:10px 14px;background:#E9F5EE;border-radius:10px;border:.5px solid #2E8B57"><i class="ti ti-circle-check" style="color:#2E8B57;font-size:20px"></i><span style="font-size:11px;font-weight:600;color:#2E8B57;white-space:nowrap">Design Approved</span></div><button onclick="openDesignPreview('${proj.designFileUrl}')" style="display:flex;align-items:center;gap:5px;padding:5px 12px;background:var(--card);border:.5px solid var(--border);border-radius:7px;font-size:11px;font-weight:600;color:var(--text);cursor:pointer;white-space:nowrap;box-shadow:0 1px 3px rgba(26,39,68,.07);font-family:var(--fu)"><i class="ti ti-eye" style="font-size:13px"></i> Preview</button></div>`:''}
       </div>
@@ -2123,9 +2146,10 @@ function renderFieldsRight(dept,cfg,proj,mode){
         <div class="mf"><label>Contact Number</label><input type="text" id="pf-phone" value="${v('phone')}" placeholder="09XXXXXXXXX"></div>
       </div>
       <div class="mf-row">
-        <div class="mf"><label>Start Date</label><input type="date" id="pf-start" value="${v('dateStart')}"></div>
-        <div class="mf"><label>Finish Date</label><input type="date" id="pf-end" value="${v('dateEnd')}"></div>
+        <div class="mf"><label>Projected / Due Date</label><input type="date" id="pf-end" value="${v('dateEnd')}"></div>
+        <div class="mf"><label>End of Range <span style="font-size:10px;color:var(--muted)">(optional)</span></label><input type="date" id="pf-end2" value="${v('projectedDateEnd')}"></div>
       </div>
+      ${mode==='edit'?`<div class="mf"><label>Delivered Date <span style="font-size:10px;color:var(--muted)">(auto-set on Delivered)</span></label><input type="date" id="pf-delivered" value="${v('deliveredDate')}"></div>`:''}
       <div class="mf-row">
         <div class="mf"><label>Total Payment (₱)</label><input type="number" id="pf-total" value="${v('total')}" min="0" placeholder="0"></div>
         <div class="mf"><label>Downpayment (₱)</label><input type="number" id="pf-dp" value="${v('dp')}" min="0" placeholder="0"></div>
