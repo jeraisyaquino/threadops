@@ -690,12 +690,7 @@ body.staff-mode .admin-only{display:none!important;}
         </div>
         <div class="pay-row" id="pay-summary"></div>
         <div class="stitle">Department Progress</div>
-        <div class="dg">
-          <div class="dc"><div class="dh"><div class="dn"><span class="ddot" style="background:#E85D26"></span><span class="dl-0">Jersey Sublimation</span></div><div class="dpct">8 projects</div></div><div class="pb"><div class="pf" style="width:72%;background:#E85D26"></div></div><div class="plbl"><span>Progress</span><span>72%</span></div><div class="jr"><span class="jn">Warriors Team Set (40 pcs)</span><span class="jst st-on">On-going</span></div><div class="jr"><span class="jn">Phoenix FC Batch 2</span><span class="jst st-on">On-going</span></div><div class="jr"><span class="jn">Barangay League Set</span><span class="jst st-fi">Finishing</span></div><div class="jr"><span class="jn">Corporate Intramurals</span><span class="jst st-pk">Packed ✓</span></div></div>
-          <div class="dc"><div class="dh"><div class="dn"><span class="ddot" style="background:#9B59B6"></span><span class="dl-1">Custom Dress</span></div><div class="dpct">5 projects</div></div><div class="pb"><div class="pf" style="width:45%;background:#9B59B6"></div></div><div class="plbl"><span>Progress</span><span>45%</span></div><div class="jr"><span class="jn">Wedding Entourage (12 pcs)</span><span class="jst st-on">On-going</span></div><div class="jr"><span class="jn">Debut Gown Set</span><span class="jst st-qu">In Queue</span></div><div class="jr"><span class="jn">Office Uniform Dress</span><span class="jst st-fi">Finishing</span></div></div>
-          <div class="dc"><div class="dh"><div class="dn"><span class="ddot" style="background:#F0A500"></span><span class="dl-2">Merchandise</span></div><div class="dpct">6 projects</div></div><div class="pb"><div class="pf" style="width:88%;background:#F0A500"></div></div><div class="plbl"><span>Progress</span><span>88%</span></div><div class="jr"><span class="jn">Band Merch Tee (200 pcs)</span><span class="jst st-fi">Finishing</span></div><div class="jr"><span class="jn">Event Souvenir Shirt</span><span class="jst st-pk">Packed ✓</span></div><div class="jr"><span class="jn">School Spirit Wear</span><span class="jst st-pk">Packed ✓</span></div></div>
-          <div class="dc"><div class="dh"><div class="dn"><span class="ddot" style="background:#2E8B57"></span><span class="dl-3">Scrub Suits</span></div><div class="dpct">5 projects</div></div><div class="pb"><div class="pf" style="width:60%;background:#2E8B57"></div></div><div class="plbl"><span>Progress</span><span>60%</span></div><div class="jr"><span class="jn">Metro Hospital Set (30 pcs)</span><span class="jst st-on">On-going</span></div><div class="jr"><span class="jn">Clinic Staff Uniform</span><span class="jst st-fi">Finishing</span></div><div class="jr"><span class="jn">Dental Office Batch</span><span class="jst st-qu">In Queue</span></div></div>
-        </div>
+        <div class="dg" id="dept-cards"></div>
       </div>
 
       <!-- APPAREL PREVIEW -->
@@ -1026,6 +1021,7 @@ function renderDashboardStats(){
   set('stat-active',active);set('stat-packed',packed);set('stat-overdue',overdue);set('stat-lowstock',lowStock);
   const ibadge=document.getElementById('inv-badge');if(ibadge){ibadge.textContent=lowStock;ibadge.style.display=lowStock>0?'':'none';}
   const os=document.getElementById('stat-overdue-sub');if(os)os.textContent=overdue>0?'⚠ Needs action':'';
+  renderDeptCards();
 }
 function renderPaymentSummary(){
   const el=document.getElementById('pay-summary');if(!el)return;
@@ -1037,6 +1033,24 @@ function renderPaymentSummary(){
     <div class="pay-card"><div class="pay-lbl">Total Billed</div><div class="pay-val">₱${billed.toLocaleString()}</div></div>
     <div class="pay-card"><div class="pay-lbl">Total Collected</div><div class="pay-val" style="color:#2E8B57">₱${collected.toLocaleString()}</div></div>
     <div class="pay-card"><div class="pay-lbl">Outstanding</div><div class="pay-val" style="color:${balance>0?'#E85D26':'#2E8B57'}">₱${balance.toLocaleString()}</div></div>`;
+}
+function goDept(key){const ni=[...document.querySelectorAll('.ni')].find(n=>(n.getAttribute('onclick')||'').includes("'"+key+"'"));showScreen(key,ni||null);}
+function renderDeptCards(){
+  const el=document.getElementById('dept-cards');if(!el)return;
+  const depts=['jersey','dress','merch','scrub'];
+  const sw={'In Queue':0,'On-going':40,'Finishing':70,'QC & Packed':90,'Delivered':100};
+  el.innerHTML=depts.map((key,i)=>{
+    const list=projects[key]||[];
+    const tot=list.length;
+    const color=DEPT_CFG[key].color;
+    const pct=tot?Math.round(list.reduce((s,p)=>s+(sw[p.status]||0),0)/tot):0;
+    const active=list.filter(p=>p.status!=='Delivered').sort((a,b)=>
+      a.dateEnd&&b.dateEnd?new Date(a.dateEnd)-new Date(b.dateEnd):a.dateEnd?-1:b.dateEnd?1:(sw[b.status]||0)-(sw[a.status]||0)
+    ).slice(0,3);
+    const rows=active.map(p=>`<div class="jr"><span class="jn">${p.name}</span><span class="jst ${isOverdue(p)?'st-ov':stColor(p.status)}">${isOverdue(p)?'Overdue':p.status}</span></div>`).join('')||`<div style="font-size:12px;color:var(--muted);margin-top:6px">No active projects</div>`;
+    return`<div class="dc" onclick="goDept('${key}')" style="cursor:pointer"><div class="dh"><div class="dn"><span class="ddot" style="background:${color}"></span><span class="dl-${i}"></span></div><div class="dpct">${tot} project${tot!==1?'s':''}</div></div><div class="pb"><div class="pf" style="width:${pct}%;background:${color}"></div></div><div class="plbl"><span>Progress</span><span>${pct}%</span></div>${rows}</div>`;
+  }).join('');
+  depts.forEach((_,i)=>{const src=document.querySelector('.sidebar .dl-'+i);if(src)document.querySelectorAll('#dept-cards .dl-'+i).forEach(e=>e.textContent=src.textContent);});
 }
 function renderNeedsAttention(){
   const el=document.getElementById('needs-attention');if(!el)return;
