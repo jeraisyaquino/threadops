@@ -1725,7 +1725,7 @@ function projListHTML(list,dept){
     <td>₱${(p.total||0).toLocaleString()}</td>
     <td>₱${Math.max(0,(p.total||0)-(p.dp||0)).toLocaleString()}</td>
   </tr>`).join('');
-  return `<table><thead><tr><th></th><th>${isCustomer?'Customer':'Team'}</th><th>Status</th><th>Date Completed</th><th>Total</th><th>Balance</th></tr></thead><tbody>${rows}</tbody></table>`;
+  return `<table><thead><tr><th></th><th>${isCustomer?'Customer':'Team'}</th><th>Status</th><th>Due Date</th><th>Total</th><th>Balance</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 function attachCardListeners(el,dept){if(!el)return;el.querySelectorAll('.proj-card').forEach(c=>c.addEventListener('click',()=>openProjectModal(c.dataset.id,dept,'view')));}
@@ -1752,7 +1752,7 @@ function projListAllHTML(list,dept){
     const grp=list.filter(p=>p.status===status);
     if(!grp.length)return;
     hasAny=true;
-    rows+=`<tr><td colspan="6" style="padding:5px 12px;background:var(--bg);border-top:.5px solid var(--border)"><span class="jst ${stColor(status)}" style="font-size:10px">${status}</span></td></tr>`;
+    rows+=`<tr><td colspan="6" style="padding:14px 14px 7px;background:var(--bg);border-top:2px solid var(--border)"><span class="jst ${stColor(status)}" style="font-size:10px">${status}</span></td></tr>`;
     rows+=grp.map(p=>`<tr data-id="${p.id}">
       <td><div class="proj-list-svg">${getSvg(dept,p.colors,36,p.textVal,p.fontSize)}</div></td>
       <td><strong>${p.name}</strong><div style="font-size:10px;color:var(--muted)">${p.notes||''}</div></td>
@@ -1763,7 +1763,7 @@ function projListAllHTML(list,dept){
     </tr>`).join('');
   });
   if(!hasAny)return'<div style="padding:1.5rem;text-align:center;font-size:13px;color:var(--muted)">No projects</div>';
-  return`<table><thead><tr><th></th><th>${isCustomer?'Customer':'Team'}</th><th>Status</th><th>Date Completed</th><th>Total</th><th>Balance</th></tr></thead><tbody>${rows}</tbody></table>`;
+  return`<table><thead><tr><th></th><th>${isCustomer?'Customer':'Team'}</th><th>Status</th><th>Due Date</th><th>Total</th><th>Balance</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
 
 
@@ -1815,13 +1815,13 @@ function renderApparelPreview(){
         statusOrder.forEach(status=>{
           const grp=list.filter(p=>p.status===status);
           if(!grp.length)return;
-          trows+=`<tr><td colspan="6" style="padding:5px 12px;background:var(--bg);border-top:.5px solid var(--border)"><span class="jst ${stColor(status)}" style="font-size:10px">${status}</span></td></tr>`;
+          trows+=`<tr><td colspan="6" style="padding:14px 14px 7px;background:var(--bg);border-top:2px solid var(--border)"><span class="jst ${stColor(status)}" style="font-size:10px">${status}</span></td></tr>`;
           trows+=grp.map(p=>`<tr data-id="${p.id}" data-dept="${dept}"><td><div class="proj-list-svg">${getSvg(dept,p.colors,36,p.textVal,p.fontSize)}</div></td><td><strong>${p.name}</strong><div style="font-size:10px;color:var(--muted)">${p.notes||''}</div></td><td><span class="jst ${stColor(p.status)}">${p.status}</span></td><td>${p.status==='Packed'?(p.dateEnd||'—'):'—'}</td><td>₱${(p.total||0).toLocaleString()}</td><td>₱${Math.max(0,(p.total||0)-(p.dp||0)).toLocaleString()}</td></tr>`).join('');
         });
-        html+=`<div class="proj-list ap-dept-list" data-dept="${dept}"><table><thead><tr><th></th><th>${isCustomer?'Customer':'Team'}</th><th>Status</th><th>Date Completed</th><th>Total</th><th>Balance</th></tr></thead><tbody>${trows}</tbody></table></div>`;
+        html+=`<div class="proj-list ap-dept-list" data-dept="${dept}"><table><thead><tr><th></th><th>${isCustomer?'Customer':'Team'}</th><th>Status</th><th>Due Date</th><th>Total</th><th>Balance</th></tr></thead><tbody>${trows}</tbody></table></div>`;
       } else {
         const rows=list.map(p=>`<tr data-id="${p.id}" data-dept="${dept}"><td><div class="proj-list-svg">${getSvg(dept,p.colors,36,p.textVal,p.fontSize)}</div></td><td><strong>${p.name}</strong><div style="font-size:10px;color:var(--muted)">${p.notes||''}</div></td><td><span class="jst ${stColor(p.status)}">${p.status}</span></td><td>${p.status==='Packed'?(p.dateEnd||'—'):'—'}</td><td>₱${(p.total||0).toLocaleString()}</td><td>₱${Math.max(0,(p.total||0)-(p.dp||0)).toLocaleString()}</td></tr>`).join('');
-        html+=`<div class="proj-list ap-dept-list" data-dept="${dept}"><table><thead><tr><th></th><th>${isCustomer?'Customer':'Team'}</th><th>Status</th><th>Date Completed</th><th>Total</th><th>Balance</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+        html+=`<div class="proj-list ap-dept-list" data-dept="${dept}"><table><thead><tr><th></th><th>${isCustomer?'Customer':'Team'}</th><th>Status</th><th>Due Date</th><th>Total</th><th>Balance</th></tr></thead><tbody>${rows}</tbody></table></div>`;
       }
     }
     html+=`</div>`;
