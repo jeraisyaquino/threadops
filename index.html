@@ -1843,7 +1843,7 @@ function openProjectModal(projId,dept,mode){
   if(cfg.hasText){modalPalState.textVal=proj?(proj.textVal||cfg.defaultText||''):(cfg.defaultText||'');modalPalState.fontSize=proj?(proj.fontSize||7):7;}
 
   const titles={add:'Add Project',edit:'Edit Project',view:'Project Details'};
-  document.getElementById('pm-title').textContent=titles[mode]+' — '+cfg.nameLabel;
+  document.getElementById('pm-title').textContent=titles[mode];
   document.getElementById('pm-sub').textContent=proj?proj.name:(mode==='add'?'Fill in the project details':'');
 
   const body=document.getElementById('pm-body');
@@ -1896,7 +1896,7 @@ function switchToEdit(){
   renderPaletteLeft(modalDept,cfg);
   renderFieldsRight(modalDept,cfg,proj,'edit');
   if(window.innerWidth<=768){document.getElementById('pm-tabs').style.display='';switchProjTab('design');}
-  document.getElementById('pm-title').textContent='Edit Project — '+cfg.nameLabel;
+  document.getElementById('pm-title').textContent='Edit Project';
   document.getElementById('pm-footer').innerHTML=`<button class="btn btn-o" onclick="closeModal('proj-modal')">Cancel</button><button class="btn btn-p" onclick="saveProject()">Save Changes</button>`;
 }
 
