@@ -1196,12 +1196,13 @@ function renderPaymentSummary(){
 function goDept(key){const ni=[...document.querySelectorAll('.ni')].find(n=>(n.getAttribute('onclick')||'').includes("'"+key+"'"));showScreen(key,ni||null);}
 function renderDeptCards(){
   const el=document.getElementById('dept-cards');if(!el)return;
-  const depts=['jersey','dress','merch','scrub'];
+  const depts=deptKeys;
   const sw={'In Queue':0,'On-going':40,'Finishing':70,'QC & Packed':90,'Delivered':100};
   el.innerHTML=depts.map((key,i)=>{
+    const cfg=DEPT_CFG[key];if(!cfg)return '';
     const list=projects[key]||[];
     const tot=list.length;
-    const color=DEPT_CFG[key].color;
+    const color=cfg.color;
     const pct=tot?Math.round(list.reduce((s,p)=>s+(sw[p.status]||0),0)/tot):0;
     const active=list.filter(p=>p.status!=='Delivered').sort((a,b)=>
       a.dateEnd&&b.dateEnd?new Date(a.dateEnd)-new Date(b.dateEnd):a.dateEnd?-1:b.dateEnd?1:(sw[b.status]||0)-(sw[a.status]||0)
@@ -1212,9 +1213,10 @@ function renderDeptCards(){
     const capPct=capLimit>0?Math.min(100,Math.round((activePcs/capLimit)*100)):0;
     const capColor=capPct>=90?'#C0392B':capPct>=70?'#E85D26':'#2E8B57';
     const capBar=capLimit>0?`<div style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px"><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px"><span>Capacity</span><span style="font-weight:600;color:${capColor}">${activePcs} / ${capLimit} pcs</span></div><div class="pb"><div class="pf" style="width:${capPct}%;background:${capColor}"></div></div></div>`:(activePcs>0?`<div style="margin-top:8px;font-size:10px;color:var(--muted);border-top:1px solid var(--border);padding-top:8px">${activePcs} pcs in production</div>`:'');
-    return`<div class="dc" onclick="goDept('${key}')" style="cursor:pointer"><div class="dh"><div class="dn"><span class="ddot" style="background:${color}"></span><span class="dl-${i}"></span></div><div class="dpct">${tot} project${tot!==1?'s':''}</div></div><div class="pb"><div class="pf" style="width:${pct}%;background:${color}"></div></div><div class="plbl"><span>Progress</span><span>${pct}%</span></div>${rows}${capBar}</div>`;
+    const nameSpan=cfg.isBuiltin?`<span class="dl-${i}"></span>`:`<span>${cfg.name}</span>`;
+    return`<div class="dc" onclick="goDept('${key}')" style="cursor:pointer"><div class="dh"><div class="dn"><span class="ddot" style="background:${color}"></span>${nameSpan}</div><div class="dpct">${tot} project${tot!==1?'s':''}</div></div><div class="pb"><div class="pf" style="width:${pct}%;background:${color}"></div></div><div class="plbl"><span>Progress</span><span>${pct}%</span></div>${rows}${capBar}</div>`;
   }).join('');
-  depts.forEach((_,i)=>{const src=document.querySelector('.sidebar .dl-'+i);if(src)document.querySelectorAll('#dept-cards .dl-'+i).forEach(e=>e.textContent=src.textContent);});
+  depts.forEach((key,i)=>{if(!DEPT_CFG[key]?.isBuiltin)return;const src=document.querySelector('.sidebar .dl-'+i);if(src)document.querySelectorAll('#dept-cards .dl-'+i).forEach(e=>e.textContent=src.textContent);});
 }
 function renderNeedsAttention(){
   const el=document.getElementById('needs-attention');if(!el)return;
@@ -1227,7 +1229,7 @@ function renderNeedsAttention(){
   inventoryItems.filter(i=>(i.stock||0)<(i.min_stock||0)).forEach(i=>items.push({type:'stock',i}));
   const top=items.slice(0,5);
   if(!top.length){el.innerHTML='';return;}
-  const deptColor={jersey:'#E85D26',dress:'#9B59B6',merch:'#F0A500',scrub:'#2E8B57'};
+  const deptColor=_dc();
   const rows=top.map(item=>{
     if(item.type==='overdue'){
       const col=deptColor[item.dept]||'#E24B4A';
@@ -1325,6 +1327,9 @@ function refreshProjectViews(){
 }
 async function loadAllData(){
   try{
+    const{data:dr,error:de}=await _sb.from('departments').select('*').order('sort_order');
+    if(de)throw de;
+    _depts=dr||[];_buildDeptConfig();
     const[{data:pr,error:pe},{data:cr,error:ce},{data:ir,error:ie},{data:fr,error:fe}]=await Promise.all([
       _sb.from('projects').select('*').order('created_at'),
       _sb.from('custom_presets').select('*').order('created_at'),
@@ -1332,10 +1337,10 @@ async function loadAllData(){
       _sb.from('activity_feed').select('*').order('created_at',{ascending:false}).limit(100)
     ]);
     if(pe)throw pe;if(ce)throw ce;if(ie)throw ie;if(fe)throw fe;
-    projects={jersey:[],dress:[],merch:[],scrub:[]};
-    (pr||[]).forEach(row=>{if(projects[row.dept])projects[row.dept].push(dbToProject(row));});
-    customPresets={jersey:[],dress:[],merch:[],scrub:[]};
-    (cr||[]).forEach(row=>{if(customPresets[row.dept])customPresets[row.dept].push({id:row.id,label:row.label,c:row.colors});});
+    deptKeys.forEach(k=>{projects[k]=[];});
+    (pr||[]).forEach(row=>{if(projects[row.dept]!==undefined)projects[row.dept].push(dbToProject(row));});
+    customPresets={};deptKeys.forEach(k=>customPresets[k]=[]);
+    (cr||[]).forEach(row=>{if(customPresets[row.dept]!==undefined)customPresets[row.dept].push({id:row.id,label:row.label,c:row.colors});});
     inventoryItems=ir||[];renderInventory(inventoryItems);
     feedItems=fr||[];
     // auto-flag low-stock items into feed if not recently added
@@ -1359,15 +1364,18 @@ const SVGS={
   scrub:{render(c,sz=70){const t=c.top||'#2E8B57',p=c.pants||'#245C3A';return `<svg viewBox="0 0 26.115 45" width="${sz}" height="${Math.round(sz*1.8)}" xmlns="http://www.w3.org/2000/svg"><path fill="${t}" stroke="${dk(t)}" stroke-width="0.3" d="m16.38 1.5c-1.19 2.44-3.01 5-3.9 5-1.33 0-3.06-2.87-3.93-5z"/><path fill="${t}" stroke="${dk(t)}" stroke-width="0.3" d="m24.48 8.5s-.71-3.01-1-4c-.44-.86-1.14-1.56-2-2l-2.95-.74c-.23.48-.59 1.2-1.05 1.98-.75 1.3-1.77 2.8-2.87 3.76-.69.61-1.41 1-2.13 1-.85 0-1.64-.39-2.35-1-1.09-.93-1.99-2.36-2.65-3.61-.46-.89-.79-1.69-.97-2.15l-3.03.76c-.85.45-1.55 1.14-2 2-.29.99-1 4-1 4-.32.98 1.06 2.58 2 3l2 1v6 .01c.01 1.1.9 1.99 2 1.99h12 .02c1.1 0 1.99-.9 1.98-2v-6l2-1c.94-.42 2.32-2.02 2-3zm-6.74 2.66h-1.26c-.55 0-1-.44-1-1 0-.55.45-1 1-1h1.26c.55 0 1 .45 1 1 0 .56-.45 1-1 1z"/><path fill="${p}" stroke="${dk(p)}" stroke-width="0.3" d="m4.484 25.5v19h5l3-14 3 14h5v-19c0-1.105-.895-2-2-2h-12.003c-1.103.002-1.997.897-1.997 2z"/></svg>`;}}
 };
 window._SVGS=SVGS;
+let _depts=[],deptKeys=[];
+const SVG_TYPES={jersey:{zones:[{key:'body',label:'Body Color',init:'#E83232'},{key:'panel',label:'Panel / Collar',init:'#1A2744'},{key:'text',label:'Text Color',init:'#FFFFFF'}],hasText:true,defaultText:'TEAM'},dress:{zones:[{key:'body',label:'Dress Color',init:'#9B59B6'}],hasText:false},merch:{zones:[{key:'body',label:'Shirt Color',init:'#E83232'},{key:'text',label:'Text Color',init:'#FFFFFF'}],hasText:true,defaultText:'TEAM'},scrub:{zones:[{key:'top',label:'Top Color',init:'#2E8B57'},{key:'pants',label:'Pants Color',init:'#245C3A'}],hasText:false},shorts:{zones:[{key:'body',label:'Body Color',init:'#E83232'},{key:'panel',label:'Panel',init:'#1A2744'}],hasText:false}};
+const BUILTIN_PRESETS={jersey:[{label:'Red/Navy',c:['#E83232','#1A2744','#FFFFFF']},{label:'White/Navy',c:['#FFFFFF','#1A2744','#1A2744']},{label:'Green/White',c:['#2E8B57','#FFFFFF','#FFFFFF']},{label:'Gold/Navy',c:['#F0A500','#1A2744','#FFFFFF']}],dress:[{label:'Purple',c:['#9B59B6']},{label:'Rose',c:['#E91E8C']},{label:'Navy',c:['#1A2744']},{label:'Red',c:['#E83232']}],merch:[{label:'Red/White',c:['#E83232','#FFFFFF']},{label:'Navy/White',c:['#1A2744','#FFFFFF']},{label:'Black/Gold',c:['#111111','#F0A500']},{label:'Green/White',c:['#2E8B57','#FFFFFF']}],scrub:[{label:'Green',c:['#2E8B57','#245C3A']},{label:'Blue',c:['#1A6FA8','#154E78']},{label:'Purple',c:['#9B59B6','#7D3C98']},{label:'Navy',c:['#1A2744','#0e1a2e']}]};
 
-const DEPT_CFG={
+let DEPT_CFG={
   jersey:{nameLabel:'Team Name',color:'#E85D26',svgKey:'jersey',zones:[{key:'body',label:'Body Color',init:'#E83232'},{key:'panel',label:'Panel / Collar',init:'#1A2744'},{key:'text',label:'Text Color',init:'#FFFFFF'}],hasText:true,defaultText:'TEAM',presets:[{label:'Red/Navy',c:['#E83232','#1A2744','#FFFFFF']},{label:'White/Navy',c:['#FFFFFF','#1A2744','#1A2744']},{label:'Green/White',c:['#2E8B57','#FFFFFF','#FFFFFF']},{label:'Gold/Navy',c:['#F0A500','#1A2744','#FFFFFF']}]},
   dress:{nameLabel:'Customer Name',color:'#9B59B6',svgKey:'dress0',zones:[{key:'body',label:'Dress Color',init:'#9B59B6'}],hasText:false,presets:[{label:'Purple',c:['#9B59B6']},{label:'Rose',c:['#E91E8C']},{label:'Navy',c:['#1A2744']},{label:'Red',c:['#E83232']}]},
   merch:{nameLabel:'Team Name',color:'#F0A500',svgKey:'merch',zones:[{key:'body',label:'Shirt Color',init:'#E83232'},{key:'text',label:'Text Color',init:'#FFFFFF'}],hasText:true,defaultText:'TEAM',presets:[{label:'Red/White',c:['#E83232','#FFFFFF']},{label:'Navy/White',c:['#1A2744','#FFFFFF']},{label:'Black/Gold',c:['#111111','#F0A500']},{label:'Green/White',c:['#2E8B57','#FFFFFF']}]},
   scrub:{nameLabel:'Customer Name',color:'#2E8B57',svgKey:'scrub',zones:[{key:'top',label:'Top Color',init:'#2E8B57'},{key:'pants',label:'Pants Color',init:'#245C3A'}],hasText:false,presets:[{label:'Green',c:['#2E8B57','#245C3A']},{label:'Blue',c:['#1A6FA8','#154E78']},{label:'Purple',c:['#9B59B6','#7D3C98']},{label:'Navy',c:['#1A2744','#0e1a2e']}]}
 };
 
-let projects={jersey:[],dress:[],merch:[],scrub:[]};
+let projects={};
 
 let dressStyleIdx=0,currentRole='admin',modalMode='add',modalDept='jersey',modalProjId=null,modalPalState={},customPresets={},inventoryItems=[],chatMessages=[],_chatChannel=null;
 let feedItems=[],activeFeedDept='all',_feedChannel=null,_projChannel=null;
@@ -1376,12 +1384,59 @@ const deptTabs={jersey:'all',dress:'all',merch:'all',scrub:'all'};
 const deptViews={jersey:'grid',dress:'grid',merch:'grid',scrub:'grid'};
 let apparelView='grid',apparelTab='all',apparelDept='all';
 
+// ══ DEPT CONFIG HELPERS ══
+function _dc(){return Object.fromEntries(_depts.map(d=>[d.key,d.color]));}
+function _dn(){return Object.fromEntries(_depts.map(d=>[d.key,d.name]));}
+function _buildDeptConfig(){
+  DEPT_CFG={};deptKeys=[];projects={};deptColors=[];
+  _depts.forEach(row=>{
+    const def=SVG_TYPES[row.svg_type]||SVG_TYPES.jersey;
+    DEPT_CFG[row.key]={name:row.name,nameLabel:row.name_label,color:row.color,svgKey:row.svg_type,icon:row.icon,isBuiltin:row.is_builtin,zones:def.zones,hasText:def.hasText||false,defaultText:def.defaultText||'TEAM',presets:BUILTIN_PRESETS[row.key]||[]};
+    deptKeys.push(row.key);projects[row.key]=[];deptColors.push(row.color);
+    if(deptTabs[row.key]===undefined)deptTabs[row.key]='all';
+    if(deptViews[row.key]===undefined)deptViews[row.key]='grid';
+    if(unreadCounts[row.key]===undefined)unreadCounts[row.key]=0;
+  });
+  FEED_DEPTS=[{key:'all',name:'All Departments',color:'#1A2744',ic:'A'},..._depts.map(d=>({key:d.key,name:d.name,color:d.color,ic:d.name[0].toUpperCase()}))];
+  CAP_DEPTS=_depts.map(d=>({key:d.key,label:d.name}));
+  CHANNELS=[{key:'general',name:'General',color:'#1A2744',ic:'G'},..._depts.map(d=>({key:d.key,name:d.name,color:d.color,ic:d.name[0].toUpperCase()}))];
+  SALES_DEPT_COLOR=_dc();
+  SALES_DEPT_NAME=Object.fromEntries(_depts.map(d=>[d.key,d.name.split(' ')[0]]));
+  _injectCustomDepts();
+}
+function _injectCustomDepts(){
+  const customDepts=_depts.filter(d=>!d.is_builtin);
+  if(!customDepts.length)return;
+  const scrubNi=document.querySelector('.ni[onclick*="scrub"]');
+  const screenInv=document.getElementById('screen-inventory');
+  const apTabs=document.getElementById('ap-dept-tabs');
+  if(!scrubNi||!screenInv||!apTabs)return;
+  customDepts.forEach(dept=>{
+    if(!document.querySelector(`.ni[data-dept="${dept.key}"]`)){
+      const ni=document.createElement('div');ni.className='ni custom-dept-ni';ni.setAttribute('data-dept',dept.key);ni.setAttribute('onclick',`showScreen('${dept.key}',this)`);
+      ni.innerHTML=`<span class="ddot" style="background:${dept.color}"></span><span class="ni-label">${dept.name}</span>`;
+      scrubNi.insertAdjacentElement('afterend',ni);
+    }
+    if(!document.getElementById('screen-'+dept.key)){
+      const sc=document.createElement('div');sc.className='screen';sc.id='screen-'+dept.key;
+      sc.innerHTML=`<div class="ph"><div class="ph-left"><div class="pt">${dept.name}</div><div class="ps">Projects & production status</div></div><div class="ph-actions"><div class="view-toggle"><div class="btn-icon active" id="${dept.key}-grid-btn" onclick="setDeptView('${dept.key}','grid')" title="Grid"><i class="ti ti-layout-grid"></i></div><div class="btn-icon" id="${dept.key}-list-btn" onclick="setDeptView('${dept.key}','list')" title="List"><i class="ti ti-list"></i></div></div><div class="btn-icon" id="${dept.key}-board-btn" onclick="openBoardView('${dept.key}')" title="Board"><i class="ti ti-layout-columns"></i></div><button class="btn btn-p admin-only" onclick="openProjectModal(null,'${dept.key}','add')"><i class="ti ti-plus"></i>Add Project</button></div></div><div class="tab-row" style="flex-wrap:wrap"><div class="tab-btn active" onclick="switchDeptTab('${dept.key}','all',this)">All</div><div class="tab-btn" onclick="switchDeptTab('${dept.key}','In Queue',this)">In Queue</div><div class="tab-btn" onclick="switchDeptTab('${dept.key}','On-going',this)">On-going</div><div class="tab-btn" onclick="switchDeptTab('${dept.key}','Finishing',this)">Finishing</div><div class="tab-btn" onclick="switchDeptTab('${dept.key}','QC & Packed',this)">QC & Packed</div><div class="tab-btn" onclick="switchDeptTab('${dept.key}','Delivered',this)">Delivered</div><div class="tab-btn" onclick="switchDeptTab('${dept.key}','overdue',this)" style="color:#C0392B">Overdue</div></div><div id="${dept.key}-content" class="proj-grid"></div>`;
+      screenInv.insertAdjacentElement('beforebegin',sc);
+    }
+    if(!document.querySelector(`#ap-dept-tabs [onclick*="'${dept.key}'"]`)){
+      const tb=document.createElement('div');tb.className='tab-btn';tb.setAttribute('onclick',`setApparelDept('${dept.key}',this)`);
+      tb.innerHTML=`<span class="ddot" style="background:${dept.color};margin-right:4px"></span><span>${dept.name.split(' ')[0]}</span>`;
+      apTabs.appendChild(tb);
+    }
+  });
+}
+
 // ══ SVG HELPER ══
 function getSvg(dept,colors,size,tv,fs){
-  if(dept==='dress'){const k=['dress0','dress1','dress2'][dressStyleIdx];return SVGS[k].render(colors,size);}
-  if(dept==='jersey')return SVGS.jersey.render(colors,size,tv,fs);
-  if(dept==='merch')return SVGS.merch.render(colors,size,tv,fs);
-  return SVGS[DEPT_CFG[dept].svgKey].render(colors,size);
+  const cfg=DEPT_CFG[dept];if(!cfg)return '';
+  const sk=cfg.svgKey;
+  if(sk==='dress'){const k=['dress0','dress1','dress2'][dressStyleIdx];return SVGS[k].render(colors,size);}
+  if(cfg.hasText)return SVGS[sk].render(colors,size,tv,fs);
+  return SVGS[sk].render(colors,size);
 }
 
 // ══ ROLE ══
@@ -1392,8 +1447,9 @@ async function selectRole(r){
   document.body.classList.toggle('staff-mode',r==='staff');
   const _sb1=document.getElementById('sw-btn-el');if(_sb1)_sb1.title=r==='admin'?'Switch to Staff':'Switch to Admin';
   document.getElementById('tb-user').textContent=r==='admin'?'AD':'ST';
-  startClock();buildSettings();loadBranding();loadCapacityLimits();
+  startClock();loadBranding();
   await loadAllData();
+  buildSettings();loadCapacityLimits();
   renderAllDepts();renderApparelPreview();
   renderDashboardStats();renderNeedsAttention();renderPaymentSummary();
   renderActChips();renderArchive();
@@ -1518,8 +1574,8 @@ async function uploadDesignFile(file){
   renderPaletteLeft(dept,DEPT_CFG[dept]);
 }
 function openBoardView(dept){
-  const dn={jersey:'Jersey Sublimation',dress:'Custom Dress',merch:'Merchandise',scrub:'Scrub Suits'};
-  const dc={jersey:'#E85D26',dress:'#9B59B6',merch:'#F0A500',scrub:'#2E8B57'};
+  const dn=_dn();
+  const dc=_dc();
   const win=window.open('','_blank');if(!win)return;
   win.document.write(`<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${dn[dept]} Board</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
@@ -1572,7 +1628,7 @@ setupBoardChannel();
 }
 
 // ══ ACTIVITY FEED ══
-const FEED_DEPTS=[
+let FEED_DEPTS=[
   {key:'all',   name:'All Departments', color:'#1A2744', ic:'A'},
   {key:'jersey',name:'Jersey Sub.',     color:'#E85D26', ic:'J'},
   {key:'dress', name:'Custom Dress',    color:'#9B59B6', ic:'D'},
@@ -1659,8 +1715,6 @@ function renderFeed(){
 }
 
 // ══ ARCHIVE ══
-const DC={jersey:'#E85D26',dress:'#9B59B6',merch:'#F0A500',scrub:'#2E8B57'};
-const DN={jersey:'Jersey Sub.',dress:'Custom Dress',merch:'Merchandise',scrub:'Scrub Suits'};
 let arcFilter='all';
 function setArcFilter(btn,f){
   arcFilter=f;
@@ -1671,6 +1725,7 @@ function setArcFilter(btn,f){
 }
 function renderArchive(){
   const el=document.getElementById('arc-list');if(!el)return;
+  const DC=_dc();const DN=_dn();
   const now=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Manila'}));
   const pad=n=>String(n).padStart(2,'0');
   const toStr=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
@@ -1735,7 +1790,7 @@ function renderActChips(){
   }).join('');
 }
 // ══ CHAT ══
-const CHANNELS=[
+let CHANNELS=[
   {key:'general', name:'General',            color:'#1A2744', ic:'G'},
   {key:'jersey',  name:'Jersey Sublimation', color:'#E85D26', ic:'J'},
   {key:'dress',   name:'Custom Dress',       color:'#9B59B6', ic:'D'},
@@ -1854,7 +1909,7 @@ function setDeptView(dept,v){
 }
 
 // ══ RENDER DEPTS ══
-function renderAllDepts(){['jersey','dress','merch','scrub'].forEach(d=>renderDept(d));}
+function renderAllDepts(){deptKeys.forEach(d=>renderDept(d));}
 function renderDept(dept){
   const tab=deptTabs[dept]||'all';
   const v=deptViews[dept]||'grid';
@@ -1978,9 +2033,8 @@ function switchDressStyle(idx,el){
 function renderApparelPreview(){
   const cont=document.getElementById('apparel-preview-content');
   if(!cont)return;
-  const depts=(apparelDept==='all'?['jersey','dress','merch','scrub']:[apparelDept]);
-  const dnames={jersey:'Jersey Sublimation',dress:'Custom Dress',merch:'Merchandise',scrub:'Scrub Suits'};
-  const dcols={jersey:'#E85D26',dress:'#9B59B6',merch:'#F0A500',scrub:'#2E8B57'};
+  const depts=(apparelDept==='all'?deptKeys:[apparelDept]);
+  const dnames=_dn();const dcols=_dc();
   const statusOrder=VISIBLE_STATUSES;
   let html='';
   depts.forEach(dept=>{
@@ -2185,7 +2239,7 @@ function renderPaletteLeft(dept,cfg){
   if(cfg.hasText){
     html+=`<div class="pal-sec-title">Team Name</div>
     <div class="p-field"><label>Team Name <span style="font-size:10px;color:var(--muted);font-weight:400">(Enter for 2nd line)</span></label><textarea id="pm-ta" rows="2" maxlength="30" spellcheck="false">${modalPalState.textVal||''}</textarea></div>
-    <div class="p-field"><label>Font size</label><div class="slrow"><input type="range" id="pm-fs" min="3" max="${dept==='merch'?80:12}" step="${dept==='merch'?2:0.5}" value="${modalPalState.fontSize||7}"><span class="slval" id="pm-fsv">${modalPalState.fontSize||7}px</span></div></div>`;
+    <div class="p-field"><label>Font size</label><div class="slrow"><input type="range" id="pm-fs" min="3" max="${cfg.svgKey==='merch'?80:12}" step="${cfg.svgKey==='merch'?2:0.5}" value="${modalPalState.fontSize||7}"><span class="slval" id="pm-fsv">${modalPalState.fontSize||7}px</span></div></div>`;
   }
   html+=`<div class="pal-sec-title">Colors</div>`;
   cfg.zones.forEach(z=>{
@@ -2440,33 +2494,40 @@ async function deleteInvItem(){
 }
 
 // ══ SETTINGS ══
-let deptColors=['#E85D26','#9B59B6','#F0A500','#2E8B57'];
+let deptColors=[];
 function buildSettings(){
-  const wrap=document.getElementById('rename-wrap');if(!wrap||wrap.children.length)return;
-  const deptKeys=['jersey','dress','merch','scrub'];
-  deptColors.forEach((color,i)=>{
-    const el=document.querySelector('.dl-'+i);const name=el?el.textContent:'Dept '+(i+1);
+  const wrap=document.getElementById('rename-wrap');if(!wrap)return;
+  wrap.innerHTML='';
+  _depts.forEach((dept,i)=>{
     const div=document.createElement('div');div.className='sf';
-    div.innerHTML=`<label>Department ${i+1}</label><div class="rin"><input type="text" id="dname-${i}" value="${name}" disabled style="opacity:.6;cursor:default" oninput="renameDept(${i},this.value)"><label id="dcolor-label-${i}" style="position:relative;width:22px;height:22px;flex-shrink:0;cursor:default;display:block;border-radius:50%" title="Pick color"><span id="dsw-${i}" style="display:block;width:22px;height:22px;border-radius:50%;background:${color};border:2px solid #fff;box-shadow:0 0 0 1.5px #ccc;pointer-events:none"></span><input type="color" id="dcolor-${i}" value="${color}" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:default;border:none;padding:0;pointer-events:none" oninput="changeDeptColor(${i},this.value)"></label></div>`;
+    const builtinBadge=dept.is_builtin?`<span style="font-size:10px;color:var(--muted);font-weight:600;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:1px 5px;flex-shrink:0">Built-in</span>`:
+      `<button class="btn-icon" style="color:#C0392B;flex-shrink:0;margin-left:2px" onclick="deleteDept('${dept.key}',${i})" title="Delete department"><i class="ti ti-trash" style="font-size:13px"></i></button>`;
+    div.innerHTML=`<label style="display:flex;align-items:center;gap:5px"><i class="ti ${dept.icon||'ti-shirt'}" style="font-size:13px;color:${dept.color}"></i> Dept ${i+1}</label><div class="rin"><input type="text" id="dname-${i}" value="${dept.name}" disabled style="opacity:.6;cursor:default" oninput="renameDept(${i},this.value)"><label id="dcolor-label-${i}" style="position:relative;width:22px;height:22px;flex-shrink:0;cursor:default;display:block;border-radius:50%" title="Pick color"><span id="dsw-${i}" style="display:block;width:22px;height:22px;border-radius:50%;background:${dept.color};border:2px solid #fff;box-shadow:0 0 0 1.5px #ccc;pointer-events:none"></span><input type="color" id="dcolor-${i}" value="${dept.color}" style="position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:default;border:none;padding:0;pointer-events:none" oninput="changeDeptColor(${i},this.value)"></label>${builtinBadge}</div>`;
     wrap.appendChild(div);
   });
+  const addArea=document.createElement('div');addArea.id='add-dept-area';
+  addArea.innerHTML=`<button class="btn btn-o" style="width:100%;justify-content:center;margin-top:8px;font-size:12px;font-weight:600" onclick="showAddDeptForm()"><i class="ti ti-plus"></i> Add Department</button><div id="add-dept-form" style="display:none"></div>`;
+  wrap.appendChild(addArea);
   buildThemeSwatches();
 }
 function changeDeptColor(idx,color){
   deptColors[idx]=color;
-  const deptKey=['jersey','dress','merch','scrub'][idx];
+  const deptKey=deptKeys[idx];if(!deptKey)return;
   DEPT_CFG[deptKey].color=color;
   const sw=document.getElementById('dsw-'+idx);if(sw)sw.style.background=color;
-  document.querySelectorAll('.sidebar .ddot')[idx].style.background=color;
+  const allDots=document.querySelectorAll('.sidebar .ddot');if(allDots[idx])allDots[idx].style.background=color;
   const dashDots=document.querySelectorAll('.dg .ddot');if(dashDots[idx])dashDots[idx].style.background=color;
   const dashPfs=document.querySelectorAll('.dg .pf');if(dashPfs[idx])dashPfs[idx].style.background=color;
   renderApparelPreview();
 }
-function renameDept(idx,val){document.querySelectorAll('.dl-'+idx).forEach(e=>e.textContent=val);}
+function renameDept(idx,val){
+  const key=deptKeys[idx];
+  if(DEPT_CFG[key]?.isBuiltin)document.querySelectorAll('.dl-'+idx).forEach(e=>e.textContent=val);
+}
 function toggleDeptEdit(){
   document.getElementById('dept-edit-btn').style.display='none';
   document.getElementById('dept-save-btn').style.display='';
-  [0,1,2,3].forEach(i=>{
+  _depts.forEach((_,i)=>{
     const inp=document.getElementById('dname-'+i);
     const ci=document.getElementById('dcolor-'+i);
     const cl=document.getElementById('dcolor-label-'+i);
@@ -2478,7 +2539,7 @@ function toggleDeptEdit(){
 function saveDeptNames(){
   document.getElementById('dept-save-btn').style.display='none';
   document.getElementById('dept-edit-btn').style.display='';
-  [0,1,2,3].forEach(i=>{
+  _depts.forEach((_,i)=>{
     const inp=document.getElementById('dname-'+i);
     const ci=document.getElementById('dcolor-'+i);
     const cl=document.getElementById('dcolor-label-'+i);
@@ -2487,6 +2548,52 @@ function saveDeptNames(){
     if(cl)cl.style.cursor='default';
   });
   showToast('Departments saved',{icon:'ti-circle-check',iconBg:'#E9F5EE',iconColor:'#2E8B57'});
+}
+function showAddDeptForm(){
+  const ICONS=['ti-shirt','ti-hanger','ti-needle','ti-scissors','ti-wash-machine','ti-package','ti-shopping-bag','ti-ruler','ti-palette','ti-crown','ti-star','ti-diamond','ti-heart','ti-bolt','ti-circle-letter-p','ti-circle-letter-s'];
+  const form=document.getElementById('add-dept-form');if(!form)return;
+  form.style.display='';
+  form.innerHTML=`<div style="border:1px solid var(--border);border-radius:10px;padding:14px;margin-top:8px;background:var(--bg)">
+    <div class="sf" style="margin-bottom:10px"><label>Department Name</label><input type="text" id="nd-name" placeholder="e.g. Polo Shirts"></div>
+    <div class="sf" style="margin-bottom:10px"><label>SVG Type</label><select id="nd-svgtype" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--card);color:var(--text)"><option value="jersey">Jersey — Body + Panel + Text</option><option value="dress">Dress — Body only</option><option value="merch">Merch — Body + Text</option><option value="scrub">Scrub — Top + Pants</option><option value="shorts">Shorts — Body + Panel</option></select></div>
+    <div class="sf" style="margin-bottom:10px"><label>Name Label</label><select id="nd-namelabel" style="width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--card);color:var(--text)"><option value="Team Name">Team Name</option><option value="Customer Name">Customer Name</option></select></div>
+    <div class="sf" style="margin-bottom:10px"><label>Color</label><div style="display:flex;align-items:center;gap:8px"><input type="color" id="nd-color" value="#3B82F6" style="width:36px;height:36px;border:none;cursor:pointer;border-radius:8px" oninput="document.getElementById('nd-color-hex').textContent=this.value"><span id="nd-color-hex" style="font-size:12px;color:var(--muted);font-family:monospace">#3B82F6</span></div></div>
+    <div style="margin-bottom:12px"><label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:8px">Icon</label><div style="display:grid;grid-template-columns:repeat(8,1fr);gap:4px" id="nd-icon-grid">${ICONS.map((ic,idx)=>`<button class="btn-icon" id="ndic-${idx}" onclick="selectDeptIcon('${ic}',${idx})" title="${ic}" style="${idx===0?'background:var(--accent);color:#fff;':''}border-radius:6px;padding:6px;font-size:16px"><i class="ti ${ic}"></i></button>`).join('')}</div></div>
+    <input type="hidden" id="nd-icon" value="${ICONS[0]}">
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-p" style="flex:1;justify-content:center;font-weight:600" onclick="saveDept()"><i class="ti ti-circle-check"></i> Save</button>
+      <button class="btn btn-o" onclick="document.getElementById('add-dept-form').style.display='none'">Cancel</button>
+    </div>
+  </div>`;
+}
+function selectDeptIcon(icon,idx){
+  document.getElementById('nd-icon').value=icon;
+  document.querySelectorAll('#nd-icon-grid .btn-icon').forEach((b,i)=>{b.style.background=i===idx?'var(--accent)':'';b.style.color=i===idx?'#fff':'';});
+}
+async function saveDept(){
+  const name=(document.getElementById('nd-name')?.value||'').trim();
+  if(!name){showToast('Enter a department name',{icon:'ti-alert-circle',iconBg:'#FDECEA',iconColor:'#C0392B'});return;}
+  const key=name.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9-]/g,'');
+  if(deptKeys.includes(key)){showToast('Department key already exists',{icon:'ti-alert-circle',iconBg:'#FDECEA',iconColor:'#C0392B'});return;}
+  const svgType=document.getElementById('nd-svgtype').value;
+  const nameLabel=document.getElementById('nd-namelabel').value;
+  const color=document.getElementById('nd-color').value;
+  const icon=document.getElementById('nd-icon').value;
+  const {error}=await _sb.from('departments').insert({key,name,color,svg_type:svgType,icon,name_label:nameLabel,sort_order:_depts.length,is_builtin:false});
+  if(error){showToast('Could not save department',{icon:'ti-alert-circle',iconBg:'#FDECEA',iconColor:'#C0392B'});return;}
+  await loadAllData();buildSettings();loadCapacityLimits();renderDeptCards();renderAllDepts();renderApparelPreview();renderActChips();
+  showToast('Department added',{icon:'ti-circle-check',iconBg:'#E9F5EE',iconColor:'#2E8B57'});
+}
+async function deleteDept(key){
+  const count=(projects[key]||[]).length;
+  if(count>0){showToast(`Cannot delete — ${count} project${count!==1?'s':''} exist`,{icon:'ti-alert-circle',iconBg:'#FDECEA',iconColor:'#C0392B'});return;}
+  const {error}=await _sb.from('departments').delete().eq('key',key);
+  if(error){showToast('Could not delete department',{icon:'ti-alert-circle',iconBg:'#FDECEA',iconColor:'#C0392B'});return;}
+  document.querySelector(`.ni[data-dept="${key}"]`)?.remove();
+  document.getElementById('screen-'+key)?.remove();
+  document.querySelector(`#ap-dept-tabs [onclick*="'${key}'"]`)?.remove();
+  await loadAllData();buildSettings();loadCapacityLimits();renderDeptCards();renderAllDepts();renderApparelPreview();renderActChips();
+  showToast('Department deleted',{icon:'ti-circle-check',iconBg:'#E9F5EE',iconColor:'#2E8B57'});
 }
 // ── Branding ──
 function setBrandMode(mode){
@@ -2564,11 +2671,10 @@ function applyTheme(){
 }
 
 // ── CAPACITY LIMITS ──
-const CAP_DEPTS=[{key:'jersey',label:'Jersey Sublimation'},{key:'dress',label:'Custom Dress'},{key:'merch',label:'Merchandise'},{key:'scrub',label:'Scrub Suits'}];
+let CAP_DEPTS=[{key:'jersey',label:'Jersey Sublimation'},{key:'dress',label:'Custom Dress'},{key:'merch',label:'Merchandise'},{key:'scrub',label:'Scrub Suits'}];
 function loadCapacityLimits(){
   const wrap=document.getElementById('cap-limit-wrap');if(!wrap)return;
-  const colors={jersey:'#E85D26',dress:'#9B59B6',merch:'#F0A500',scrub:'#2E8B57'};
-  wrap.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${CAP_DEPTS.map(d=>{const c=DEPT_CFG[d.key]?.color||colors[d.key];const v=localStorage.getItem('cap_'+d.key)||'';return`<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--card)"><div style="height:3px;background:${c}"></div><div style="padding:11px 13px"><div style="font-size:11px;font-weight:700;color:var(--text);letter-spacing:.3px;margin-bottom:9px;display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:${c};display:inline-block;flex-shrink:0"></span>${d.label}</div><div style="display:flex;align-items:center;gap:7px"><input type="number" id="cap-${d.key}" min="0" placeholder="∞" value="${v}" style="width:72px;padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-weight:700;color:var(--text);background:var(--bg);outline:none;text-align:center;font-family:var(--fu)"><span style="font-size:11px;color:var(--muted)">pcs max</span></div></div></div>`;}).join('')}</div>`;
+  wrap.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${CAP_DEPTS.map(d=>{const c=DEPT_CFG[d.key]?.color||'#888';const v=localStorage.getItem('cap_'+d.key)||'';return`<div style="border:1px solid var(--border);border-radius:10px;overflow:hidden;background:var(--card)"><div style="height:3px;background:${c}"></div><div style="padding:11px 13px"><div style="font-size:11px;font-weight:700;color:var(--text);letter-spacing:.3px;margin-bottom:9px;display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:${c};display:inline-block;flex-shrink:0"></span>${d.label}</div><div style="display:flex;align-items:center;gap:7px"><input type="number" id="cap-${d.key}" min="0" placeholder="∞" value="${v}" style="width:72px;padding:6px 8px;border:1px solid var(--border);border-radius:8px;font-size:14px;font-weight:700;color:var(--text);background:var(--bg);outline:none;text-align:center;font-family:var(--fu)"><span style="font-size:11px;color:var(--muted)">pcs max</span></div></div></div>`;}).join('')}</div>`;
 }
 function saveCapacityLimits(){
   CAP_DEPTS.forEach(d=>{const v=document.getElementById('cap-'+d.key)?.value;if(v)localStorage.setItem('cap_'+d.key,v);else localStorage.removeItem('cap_'+d.key);});
@@ -2616,8 +2722,7 @@ function closeSearch(){document.getElementById('search-overlay').classList.remov
 function doSearch(q){
   const el=document.getElementById('search-results');
   if(!q.trim()){el.innerHTML='<div class="search-empty">Start typing to search all projects…</div>';return;}
-  const DC={jersey:'#E85D26',dress:'#9B59B6',merch:'#F0A500',scrub:'#2E8B57'};
-  const DN={jersey:'Jersey',dress:'Dress',merch:'Merch',scrub:'Scrub'};
+  const DC=_dc();const DN=Object.fromEntries(_depts.map(d=>[d.key,d.name.split(' ')[0]]));
   const matches=[];
   Object.entries(projects).forEach(([dept,list])=>{
     list.filter(p=>p.name.toLowerCase().includes(q.toLowerCase())||(p.contact||'').toLowerCase().includes(q.toLowerCase())).forEach(p=>matches.push({p,dept}));
@@ -2639,7 +2744,7 @@ document.addEventListener('keydown',e=>{
 
 // ══ EXPORT CSV ══
 function exportCSV(){
-  const DN={jersey:'Jersey Sub.',dress:'Custom Dress',merch:'Merchandise',scrub:'Scrub Suits'};
+  const DN=_dn();
   const rows=[['Team/Customer','Contact','Phone','Department','Status','Due Date','Delivered Date','Total (PHP)','DP (PHP)','Balance (PHP)','Pieces','Jersey Type']];
   Object.entries(projects).forEach(([dept,list])=>{
     list.forEach(p=>{
@@ -2698,8 +2803,7 @@ function renderProjectMap(){
   Object.entries(projects).forEach(([dept,list])=>{list.filter(p=>p.status!=='Delivered'&&p.dateEnd).forEach(p=>all.push({p,dept}));});
   if(!all.length){el.innerHTML='<div class="g-empty">No active projects with due dates set.</div>';return;}
   all.sort((a,b)=>a.p.dateEnd.localeCompare(b.p.dateEnd));
-  const DC={jersey:'#E85D26',dress:'#9B59B6',merch:'#F0A500',scrub:'#2E8B57'};
-  const DN={jersey:'Jersey',dress:'Dress',merch:'Merch',scrub:'Scrub'};
+  const DC=_dc();const DN=Object.fromEntries(_depts.map(d=>[d.key,d.name.split(' ')[0]]));
   const today=new Date(todayPH());
   const endDates=all.map(x=>new Date(x.p.dateEnd));
   const minD=new Date(today);minD.setDate(minD.getDate()-7);
@@ -2733,7 +2837,7 @@ function renderCalendar(){
   if(!gridEl||!upEl)return;
   const today=new Date(todayPH());
   const y=calYear,m=calMonth;
-  const DC={jersey:'#E85D26',dress:'#9B59B6',merch:'#F0A500',scrub:'#2E8B57'};
+  const DC=_dc();
   const first=new Date(y,m,1),last=new Date(y,m+1,0);
   const startDay=first.getDay();
   document.getElementById('cal-month-label').textContent=first.toLocaleDateString('en-PH',{month:'long',year:'numeric'});
@@ -2827,8 +2931,8 @@ async function doBulkStatus(newStatus){
 // ══ SALES ══
 let salesRange='all',salesDept='all';
 let _chartDept=null,_chartStatus=null,_chartMonthly=null;
-const SALES_DEPT_COLOR={jersey:'#E85D26',dress:'#9B59B6',merch:'#F0A500',scrub:'#2E8B57'};
-const SALES_DEPT_NAME={jersey:'Jersey',dress:'Dress',merch:'Merch',scrub:'Scrub'};
+let SALES_DEPT_COLOR={jersey:'#E85D26',dress:'#9B59B6',merch:'#F0A500',scrub:'#2E8B57'};
+let SALES_DEPT_NAME={jersey:'Jersey',dress:'Dress',merch:'Merch',scrub:'Scrub'};
 function salesGetFiltered(){
   const now=new Date();
   const list=[];
@@ -2854,7 +2958,7 @@ function renderSales(){
 function renderSalesFilters(){
   const el=document.getElementById('sales-filters');if(!el)return;
   const ranges=[['all','All Time'],['year','This Year'],['month','This Month'],['week','This Week']];
-  const depts=[['all','All Depts',null],['jersey','Jersey','#E85D26'],['dress','Dress','#9B59B6'],['merch','Merch','#F0A500'],['scrub','Scrub','#2E8B57']];
+  const depts=[['all','All Depts',null],..._depts.map(d=>[d.key,d.name.split(' ')[0],d.color])];
   el.innerHTML=`<div style="display:flex;gap:6px;flex-wrap:wrap">${ranges.map(([v,l])=>`<div class="sf-chip${salesRange===v?' active':''}" onclick="salesRange='${v}';renderSales()">${l}</div>`).join('')}</div><div style="width:1px;height:24px;background:var(--border);flex-shrink:0"></div><div style="display:flex;gap:6px;flex-wrap:wrap">${depts.map(([v,l,c])=>`<div class="sf-dept-chip${salesDept===v?' active':''}" style="${c&&salesDept===v?'border-color:'+c+';color:'+c:''}" onclick="salesDept='${v}';renderSales()">${c?`<span style="width:7px;height:7px;border-radius:50%;background:${c};display:inline-block;flex-shrink:0"></span>`:''} ${l}</div>`).join('')}</div>`;
 }
 function renderSalesKPI(){
@@ -2876,9 +2980,11 @@ function renderSalesCharts(){
   const gc=isDark?'rgba(255,255,255,.07)':'rgba(0,0,0,.06)';
   const bc=isDark?'#1A2744':'#fff';
   // Dept bar
-  const deptVals=['jersey','dress','merch','scrub'].map(d=>list.filter(p=>p._dept===d).reduce((s,p)=>s+(p.total||0),0));
+  const deptVals=deptKeys.map(d=>list.filter(p=>p._dept===d).reduce((s,p)=>s+(p.total||0),0));
+  const deptLabels=deptKeys.map(d=>DEPT_CFG[d]?.name.split(' ')[0]||d);
+  const deptBgColors=deptKeys.map(d=>DEPT_CFG[d]?.color||'#888');
   if(_chartDept)_chartDept.destroy();
-  _chartDept=new Chart(document.getElementById('chart-dept'),{type:'bar',data:{labels:['Jersey','Dress','Merch','Scrub'],datasets:[{data:deptVals,backgroundColor:['#E85D26','#9B59B6','#F0A500','#2E8B57'],borderRadius:6,borderSkipped:false}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'₱'+c.raw.toLocaleString()}}},scales:{x:{ticks:{color:tc,callback:v=>'₱'+v.toLocaleString()},grid:{color:gc}},y:{ticks:{color:tc},grid:{display:false}}}}});
+  _chartDept=new Chart(document.getElementById('chart-dept'),{type:'bar',data:{labels:deptLabels,datasets:[{data:deptVals,backgroundColor:deptBgColors,borderRadius:6,borderSkipped:false}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'₱'+c.raw.toLocaleString()}}},scales:{x:{ticks:{color:tc,callback:v=>'₱'+v.toLocaleString()},grid:{color:gc}},y:{ticks:{color:tc},grid:{display:false}}}}});
   // Status donut
   const STS=['In Queue','On-going','Finishing','QC & Packed','Delivered'];
   const STC=['#8B9CBF','#E85D26','#F0A500','#4B5EA6','#2E8B57'];
