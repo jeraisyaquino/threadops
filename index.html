@@ -683,11 +683,12 @@ body.staff-mode .admin-only{display:none!important;}
           
         </div>
         <div id="needs-attention"><div class="attn-wrap"><div class="attn-head"><div class="skel skel-icon" style="width:20px;height:20px;border-radius:50%"></div><div class="skel skel-line" style="width:120px"></div></div><div class="skel-item"><div class="skel skel-icon"></div><div style="flex:1"><div class="skel skel-line" style="width:70%"></div><div class="skel skel-sub" style="width:45%"></div></div></div><div class="skel-item"><div class="skel skel-icon"></div><div style="flex:1"><div class="skel skel-line" style="width:55%"></div><div class="skel skel-sub" style="width:35%"></div></div></div><div class="skel-item"><div class="skel skel-icon"></div><div style="flex:1"><div class="skel skel-line" style="width:65%"></div><div class="skel skel-sub" style="width:40%"></div></div></div></div></div>
-        <div class="sg">
+        <div class="sg" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr))">
           <div class="sc"><div class="si or"><i class="ti ti-clipboard-list"></i></div><div class="sv" id="stat-active">—</div><div class="sl2">Active Projects</div></div>
           <div class="sc"><div class="si gn"><i class="ti ti-check"></i></div><div class="sv" id="stat-packed">—</div><div class="sl2">Completed</div></div>
           <div class="sc"><div class="si gd"><i class="ti ti-alert-triangle"></i></div><div class="sv" id="stat-overdue">—</div><div class="sl2">Overdue</div><div class="sd dn" id="stat-overdue-sub"></div></div>
           <div class="sc"><div class="si nv"><i class="ti ti-package"></i></div><div class="sv" id="stat-lowstock">—</div><div class="sl2">Low Stock</div></div>
+          <div class="sc"><div class="si" style="background:#EEF0FA;color:#4B5EA6"><i class="ti ti-stack-2"></i></div><div class="sv" id="stat-inprod">—</div><div class="sl2">Pcs in Production</div></div>
         </div>
         <div class="pay-row" id="pay-summary"></div>
         <div class="stitle">Department Progress</div>
@@ -863,6 +864,12 @@ body.staff-mode .admin-only{display:none!important;}
             <div class="sf"><label>Admin Email</label><input type="email" value="admin@threadops.ph"></div>
             <button class="btn btn-p" style="margin-top:10px;width:100%;justify-content:center" onclick="saveBranding()"><i class="ti ti-device-floppy"></i> Save Branding</button>
           </div>
+          <div class="scard">
+            <div class="sct">Capacity Limits</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Max pieces each department can handle at once. Used to show capacity bars on the dashboard.</div>
+            <div id="cap-limit-wrap"></div>
+            <button class="btn btn-p" style="margin-top:10px;width:100%;justify-content:center" onclick="saveCapacityLimits()"><i class="ti ti-device-floppy"></i> Save Limits</button>
+          </div>
           <div class="scard" style="grid-column:1/-1">
             <div class="sct">Dashboard Theme</div>
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px">
@@ -1018,8 +1025,9 @@ function renderDashboardStats(){
   const packed=all.filter(p=>p.status==='Delivered').length;
   const overdue=all.filter(p=>isOverdue(p)).length;
   const lowStock=inventoryItems.filter(i=>(i.stock||0)<(i.min_stock||0)).length;
+  const inProd=all.filter(p=>p.status!=='Delivered').reduce((s,p)=>s+(p.pcs||0),0);
   const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
-  set('stat-active',active);set('stat-packed',packed);set('stat-overdue',overdue);set('stat-lowstock',lowStock);
+  set('stat-active',active);set('stat-packed',packed);set('stat-overdue',overdue);set('stat-lowstock',lowStock);set('stat-inprod',inProd);
   const ibadge=document.getElementById('inv-badge');if(ibadge){ibadge.textContent=lowStock;ibadge.style.display=lowStock>0?'':'none';}
   const os=document.getElementById('stat-overdue-sub');if(os)os.textContent=overdue>0?'⚠ Needs action':'';
   renderDeptCards();
@@ -1049,7 +1057,12 @@ function renderDeptCards(){
       a.dateEnd&&b.dateEnd?new Date(a.dateEnd)-new Date(b.dateEnd):a.dateEnd?-1:b.dateEnd?1:(sw[b.status]||0)-(sw[a.status]||0)
     ).slice(0,3);
     const rows=active.map(p=>`<div class="jr"><span class="jn">${p.name}</span><span class="jst ${isOverdue(p)?'st-ov':stColor(p.status)}">${isOverdue(p)?'Overdue':p.status}</span></div>`).join('')||`<div style="font-size:12px;color:var(--muted);margin-top:6px">No active projects</div>`;
-    return`<div class="dc" onclick="goDept('${key}')" style="cursor:pointer"><div class="dh"><div class="dn"><span class="ddot" style="background:${color}"></span><span class="dl-${i}"></span></div><div class="dpct">${tot} project${tot!==1?'s':''}</div></div><div class="pb"><div class="pf" style="width:${pct}%;background:${color}"></div></div><div class="plbl"><span>Progress</span><span>${pct}%</span></div>${rows}</div>`;
+    const activePcs=list.filter(p=>p.status!=='Delivered').reduce((s,p)=>s+(p.pcs||0),0);
+    const capLimit=parseInt(localStorage.getItem('cap_'+key))||0;
+    const capPct=capLimit>0?Math.min(100,Math.round((activePcs/capLimit)*100)):0;
+    const capColor=capPct>=90?'#C0392B':capPct>=70?'#E85D26':'#2E8B57';
+    const capBar=capLimit>0?`<div style="margin-top:8px;border-top:1px solid var(--border);padding-top:8px"><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px"><span>Capacity</span><span style="font-weight:600;color:${capColor}">${activePcs} / ${capLimit} pcs</span></div><div class="pb"><div class="pf" style="width:${capPct}%;background:${capColor}"></div></div></div>`:(activePcs>0?`<div style="margin-top:8px;font-size:10px;color:var(--muted);border-top:1px solid var(--border);padding-top:8px">${activePcs} pcs in production</div>`:'');
+    return`<div class="dc" onclick="goDept('${key}')" style="cursor:pointer"><div class="dh"><div class="dn"><span class="ddot" style="background:${color}"></span><span class="dl-${i}"></span></div><div class="dpct">${tot} project${tot!==1?'s':''}</div></div><div class="pb"><div class="pf" style="width:${pct}%;background:${color}"></div></div><div class="plbl"><span>Progress</span><span>${pct}%</span></div>${rows}${capBar}</div>`;
   }).join('');
   depts.forEach((_,i)=>{const src=document.querySelector('.sidebar .dl-'+i);if(src)document.querySelectorAll('#dept-cards .dl-'+i).forEach(e=>e.textContent=src.textContent);});
 }
@@ -1086,14 +1099,15 @@ function dbToProject(row){
     projectedDateEnd:row.projected_date_end||'',deliveredDate:row.delivered_date||'',
     total:row.total||0,dp:row.dp||0,status:row.status||'In Queue',
     notes:row.notes||'',colors:row.colors||{},textVal:row.text_val||'',fontSize:row.font_size||7,
-    designFileUrl:row.design_file_url||null};
+    designFileUrl:row.design_file_url||null,pcs:row.pcs||null,jerseyType:row.jersey_type||null};
 }
 function projectToDb(proj,dept){
   return{id:proj.id,dept,name:proj.name,contact:proj.contact||'',phone:proj.phone||'',
     date_start:proj.dateStart||null,date_end:proj.dateEnd||null,
     projected_date_end:proj.projectedDateEnd||null,delivered_date:proj.deliveredDate||null,
     total:proj.total||0,dp:proj.dp||0,status:proj.status||'In Queue',
-    notes:proj.notes||'',colors:proj.colors||{},text_val:proj.textVal||'',font_size:proj.fontSize||7};
+    notes:proj.notes||'',colors:proj.colors||{},text_val:proj.textVal||'',font_size:proj.fontSize||7,
+    pcs:proj.pcs||null,jersey_type:proj.jerseyType||null};
 }
 function invCardHTML(i){
   const stock=i.stock||0,min=i.min_stock||0;
@@ -1223,7 +1237,7 @@ async function selectRole(r){
   document.body.classList.toggle('staff-mode',r==='staff');
   const _sb1=document.getElementById('sw-btn-el');if(_sb1)_sb1.title=r==='admin'?'Switch to Staff':'Switch to Admin';
   document.getElementById('tb-user').textContent=r==='admin'?'AD':'ST';
-  startClock();buildSettings();loadBranding();
+  startClock();buildSettings();loadBranding();loadCapacityLimits();
   await loadAllData();
   renderAllDepts();renderApparelPreview();
   renderDashboardStats();renderNeedsAttention();renderPaymentSummary();
@@ -1257,6 +1271,7 @@ function showScreen(id,el){
   if(el)el.classList.add('active');
   if(id==='apparel')renderApparelPreview();
   if(id==='dashboard'){renderDashboardStats();renderNeedsAttention();renderPaymentSummary();}
+  if(id==='settings')loadCapacityLimits();
   if(id==='chat'){
     renderFeedDeptList();renderFeedHeader();renderFeed();renderActChips();renderArchive();
     if(window.innerWidth<=768)switchActTab(activeActTab||'feed');
@@ -1707,7 +1722,6 @@ function buildStrip(p,dept){
 }
 function projCardHTML(p,dept){
   const svgStr=getSvg(dept,p.colors,80,p.textVal,p.fontSize);
-  const notes=p.notes?`<div class="proj-card-notes">${p.notes}</div>`:'';
   const deliveredRow=p.status==='Delivered'&&p.deliveredDate?`<div style="display:flex;align-items:center;gap:4px;font-size:10px;color:#2E8B57;font-weight:600;margin:3px 0 1px"><i class="ti ti-circle-check" style="font-size:11px"></i>Delivered · ${fmtShortDate(p.deliveredDate)}</div>`:'';
   return `<div class="proj-card" data-id="${p.id}">
     <span class="proj-card-status">${stBadge(p)}</span>
@@ -1715,7 +1729,6 @@ function projCardHTML(p,dept){
     <div class="proj-card-name">${p.name}</div>
     <div class="proj-card-contact">${p.contact}</div>
     ${deliveredRow}
-    ${notes}
     ${buildStrip(p,dept)}
   </div>`;
 }
@@ -1735,7 +1748,7 @@ function projListHTML(list,dept){
   const isCustomer=dept==='dress'||dept==='scrub';
   const rows=list.map(p=>`<tr data-id="${p.id}">
     <td><div class="proj-list-svg">${getSvg(dept,p.colors,36,p.textVal,p.fontSize)}</div></td>
-    <td><strong>${p.name}</strong><div style="font-size:10px;color:var(--muted)">${p.notes||''}</div></td>
+    <td><strong>${p.name}</strong></td>
     <td>${stBadge(p)}</td>
     <td>${p.status==='Delivered'&&p.deliveredDate?`<span style="display:inline-flex;align-items:center;gap:3px;color:#2E8B57;font-weight:600"><i class="ti ti-circle-check" style="font-size:12px"></i>${fmtShortDate(p.deliveredDate)}</span>`:(p.dateEnd?fmtShortDate(p.dateEnd):'—')}</td>
     <td>₱${(p.total||0).toLocaleString()}</td>
@@ -1771,7 +1784,7 @@ function projListAllHTML(list,dept){
     rows+=`<tr><td colspan="6" style="padding:14px 14px 7px;background:var(--bg);border-top:2px solid var(--border)"><span class="jst ${stColor(status)}" style="font-size:10px">${status}</span></td></tr>`;
     rows+=grp.map(p=>`<tr data-id="${p.id}">
       <td><div class="proj-list-svg">${getSvg(dept,p.colors,36,p.textVal,p.fontSize)}</div></td>
-      <td><strong>${p.name}</strong><div style="font-size:10px;color:var(--muted)">${p.notes||''}</div></td>
+      <td><strong>${p.name}</strong></td>
       <td><span class="jst ${stColor(p.status)}">${p.status}</span></td>
       <td>${p.status==='Delivered'&&p.deliveredDate?`<span style="display:inline-flex;align-items:center;gap:3px;color:#2E8B57;font-weight:600"><i class="ti ti-circle-check" style="font-size:12px"></i>${fmtShortDate(p.deliveredDate)}</span>`:(p.dateEnd?fmtShortDate(p.dateEnd):'—')}</td>
       <td>₱${(p.total||0).toLocaleString()}</td>
@@ -1819,11 +1832,11 @@ function renderApparelPreview(){
           const grp=list.filter(p=>p.status===status);
           if(!grp.length)return;
           html+=`<div style="grid-column:1/-1;display:flex;align-items:center;gap:8px;margin-top:4px;margin-bottom:2px"><span class="jst ${stColor(status)}" style="font-size:11px">${status}</span><div style="flex:1;height:.5px;background:var(--border)"></div></div>`;
-          html+=grp.map(p=>`<div class="proj-card" data-id="${p.id}" data-dept="${dept}"><span class="proj-card-status"><span class="jst ${stColor(p.status)}">${p.status}</span></span><div class="proj-card-svg">${getSvg(dept,p.colors,80,p.textVal,p.fontSize)}</div><div class="proj-card-name">${p.name}</div><div class="proj-card-contact">${p.contact}</div>${p.notes?`<div class="proj-card-notes">${p.notes}</div>`:''}</div>`).join('');
+          html+=grp.map(p=>`<div class="proj-card" data-id="${p.id}" data-dept="${dept}"><span class="proj-card-status"><span class="jst ${stColor(p.status)}">${p.status}</span></span><div class="proj-card-svg">${getSvg(dept,p.colors,80,p.textVal,p.fontSize)}</div><div class="proj-card-name">${p.name}</div><div class="proj-card-contact">${p.contact}</div></div>`).join('');
         });
         html+=`</div>`;
       } else {
-        html+=`<div class="proj-grid ap-dept-grid" data-dept="${dept}">${list.map(p=>`<div class="proj-card" data-id="${p.id}" data-dept="${dept}"><span class="proj-card-status"><span class="jst ${stColor(p.status)}">${p.status}</span></span><div class="proj-card-svg">${getSvg(dept,p.colors,80,p.textVal,p.fontSize)}</div><div class="proj-card-name">${p.name}</div><div class="proj-card-contact">${p.contact}</div>${p.notes?`<div class="proj-card-notes">${p.notes}</div>`:''}</div>`).join('')}</div>`;
+        html+=`<div class="proj-grid ap-dept-grid" data-dept="${dept}">${list.map(p=>`<div class="proj-card" data-id="${p.id}" data-dept="${dept}"><span class="proj-card-status"><span class="jst ${stColor(p.status)}">${p.status}</span></span><div class="proj-card-svg">${getSvg(dept,p.colors,80,p.textVal,p.fontSize)}</div><div class="proj-card-name">${p.name}</div><div class="proj-card-contact">${p.contact}</div></div>`).join('')}</div>`;
       }
     } else {
       if(apparelTab==='all'){
@@ -1832,11 +1845,11 @@ function renderApparelPreview(){
           const grp=list.filter(p=>p.status===status);
           if(!grp.length)return;
           trows+=`<tr><td colspan="6" style="padding:14px 14px 7px;background:var(--bg);border-top:2px solid var(--border)"><span class="jst ${stColor(status)}" style="font-size:10px">${status}</span></td></tr>`;
-          trows+=grp.map(p=>`<tr data-id="${p.id}" data-dept="${dept}"><td><div class="proj-list-svg">${getSvg(dept,p.colors,36,p.textVal,p.fontSize)}</div></td><td><strong>${p.name}</strong><div style="font-size:10px;color:var(--muted)">${p.notes||''}</div></td><td><span class="jst ${stColor(p.status)}">${p.status}</span></td><td>${p.status==='Packed'?(p.dateEnd||'—'):'—'}</td><td>₱${(p.total||0).toLocaleString()}</td><td>₱${Math.max(0,(p.total||0)-(p.dp||0)).toLocaleString()}</td></tr>`).join('');
+          trows+=grp.map(p=>`<tr data-id="${p.id}" data-dept="${dept}"><td><div class="proj-list-svg">${getSvg(dept,p.colors,36,p.textVal,p.fontSize)}</div></td><td><strong>${p.name}</strong></td><td><span class="jst ${stColor(p.status)}">${p.status}</span></td><td>${p.status==='Packed'?(p.dateEnd||'—'):'—'}</td><td>₱${(p.total||0).toLocaleString()}</td><td>₱${Math.max(0,(p.total||0)-(p.dp||0)).toLocaleString()}</td></tr>`).join('');
         });
         html+=`<div class="proj-list ap-dept-list" data-dept="${dept}"><table><thead><tr><th></th><th>${isCustomer?'Customer':'Team'}</th><th>Status</th><th>Due Date</th><th>Total</th><th>Balance</th></tr></thead><tbody>${trows}</tbody></table></div>`;
       } else {
-        const rows=list.map(p=>`<tr data-id="${p.id}" data-dept="${dept}"><td><div class="proj-list-svg">${getSvg(dept,p.colors,36,p.textVal,p.fontSize)}</div></td><td><strong>${p.name}</strong><div style="font-size:10px;color:var(--muted)">${p.notes||''}</div></td><td><span class="jst ${stColor(p.status)}">${p.status}</span></td><td>${p.status==='Packed'?(p.dateEnd||'—'):'—'}</td><td>₱${(p.total||0).toLocaleString()}</td><td>₱${Math.max(0,(p.total||0)-(p.dp||0)).toLocaleString()}</td></tr>`).join('');
+        const rows=list.map(p=>`<tr data-id="${p.id}" data-dept="${dept}"><td><div class="proj-list-svg">${getSvg(dept,p.colors,36,p.textVal,p.fontSize)}</div></td><td><strong>${p.name}</strong></td><td><span class="jst ${stColor(p.status)}">${p.status}</span></td><td>${p.status==='Packed'?(p.dateEnd||'—'):'—'}</td><td>₱${(p.total||0).toLocaleString()}</td><td>₱${Math.max(0,(p.total||0)-(p.dp||0)).toLocaleString()}</td></tr>`).join('');
         html+=`<div class="proj-list ap-dept-list" data-dept="${dept}"><table><thead><tr><th></th><th>${isCustomer?'Customer':'Team'}</th><th>Status</th><th>Due Date</th><th>Total</th><th>Balance</th></tr></thead><tbody>${rows}</tbody></table></div>`;
       }
     }
@@ -1953,6 +1966,8 @@ async function saveProject(){
   const dp=parseFloat(document.getElementById('pf-dp')?.value)||0;
   const status=document.getElementById('pf-status')?.value||'In Queue';
   const notes=document.getElementById('pf-notes')?.value.trim()||'';
+  const pcs=parseInt(document.getElementById('pf-pcs')?.value)||null;
+  const jerseyType=modalDept==='jersey'?(document.getElementById('pf-jersey-type')?.value||null):null;
   if(!name){document.getElementById('pf-name')?.focus();showToast('Please enter a name');return;}
   const prev=modalMode==='edit'?projects[modalDept].find(p=>p.id===modalProjId):null;
   const today=todayPH();
@@ -1962,7 +1977,7 @@ async function saveProject(){
   if(status==='Delivered'&&!deliveredDate)deliveredDate=today;
   const colors={};
   cfg.zones.forEach(z=>colors[z.key]=modalPalState[z.key]||z.init);
-  const pd={name,contact,phone,dateStart,dateEnd,projectedDateEnd,deliveredDate,total,dp,status,notes,colors,textVal:modalPalState.textVal||'',fontSize:modalPalState.fontSize||7};
+  const pd={name,contact,phone,dateStart,dateEnd,projectedDateEnd,deliveredDate,total,dp,status,notes,pcs,jerseyType,colors,textVal:modalPalState.textVal||'',fontSize:modalPalState.fontSize||7};
   if(modalMode==='add'){
     pd.id=crypto.randomUUID();
     projects[modalDept].push(pd);
@@ -2136,6 +2151,7 @@ function renderFieldsRight(dept,cfg,proj,mode){
       <div class="view-row"><label>Downpayment</label><div class="vv">₱${(proj.dp||0).toLocaleString()}</div></div>
       <div class="view-row"><label>Balance</label><div class="vv">₱${((proj.total||0)-(proj.dp||0)).toLocaleString()}</div></div>
       <div class="view-row"><label>Status</label><div class="vv">${stBadge(proj)}</div></div>
+      ${proj.pcs?`<div class="view-row"><label>Pieces</label><div class="vv">${proj.pcs} pcs${dept==='jersey'&&proj.jerseyType?' · '+({jersey_only:'Jersey Only',pair:'Pair',with_warmings:'With Warmings'}[proj.jerseyType]||proj.jerseyType):''}</div></div>`:''}
       <div class="view-row"><label>Notes</label><div class="vv" style="white-space:pre-wrap">${proj.notes||'—'}</div></div>
       <div class="view-row"><label>Colors</label><div class="vv" style="padding-bottom:0;border-bottom:none"><div class="color-chips">${colorChips}</div></div></div>`;
     right.innerHTML=`
@@ -2173,6 +2189,8 @@ function renderFieldsRight(dept,cfg,proj,mode){
       <div class="mf"><label>Status</label>
         <select id="pf-status">${VISIBLE_STATUSES.map(s=>`<option ${v('status')===s?'selected':''}>${s}</option>`).join('')}</select>
       </div>
+      ${dept==='jersey'?`<div class="mf"><label>Jersey Type</label><select id="pf-jersey-type"><option value="">— Select type —</option><option value="jersey_only" ${v('jerseyType')==='jersey_only'?'selected':''}>Jersey Only</option><option value="pair" ${v('jerseyType')==='pair'?'selected':''}>Pair</option><option value="with_warmings" ${v('jerseyType')==='with_warmings'?'selected':''}>With Warmings</option></select></div>`:''}
+      <div class="mf"><label>Pieces</label><input type="number" id="pf-pcs" value="${v('pcs')}" min="1" placeholder="0"></div>
       <div class="mf"><label>Notes</label><textarea id="pf-notes" placeholder="Additional details...">${v('notes')}</textarea></div>`;
   }
 }
@@ -2354,6 +2372,17 @@ function updateThemePreview(nav,acc){
 function applyTheme(){
   const n=document.getElementById('nav-pk').value,a=document.getElementById('acc-pk').value;
   document.documentElement.style.setProperty('--nav',n);document.documentElement.style.setProperty('--accent',a);showToast('Theme applied');
+}
+
+// ── CAPACITY LIMITS ──
+const CAP_DEPTS=[{key:'jersey',label:'Jersey Sublimation'},{key:'dress',label:'Custom Dress'},{key:'merch',label:'Merchandise'},{key:'scrub',label:'Scrub Suits'}];
+function loadCapacityLimits(){
+  const wrap=document.getElementById('cap-limit-wrap');if(!wrap)return;
+  wrap.innerHTML=CAP_DEPTS.map(d=>`<div class="sf" style="margin-bottom:8px"><label>${d.label}</label><input type="number" id="cap-${d.key}" min="0" placeholder="No limit" value="${localStorage.getItem('cap_'+d.key)||''}"></div>`).join('');
+}
+function saveCapacityLimits(){
+  CAP_DEPTS.forEach(d=>{const v=document.getElementById('cap-'+d.key)?.value;if(v)localStorage.setItem('cap_'+d.key,v);else localStorage.removeItem('cap_'+d.key);});
+  renderDeptCards();showToast('Capacity limits saved',{icon:'ti-circle-check',iconBg:'#E9F5EE',iconColor:'#2E8B57'});
 }
 
 // ── DARK / LIGHT MODE ──
