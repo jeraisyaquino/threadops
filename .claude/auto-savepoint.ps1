@@ -11,4 +11,5 @@ if ($changes) {
     $ts = $utcPlus8.ToString('yyyy-MM-dd HH:mm')
     git commit -m "Auto-savepoint: $ts (session end)" 2>$null
     git push origin master 2>$null
+    npx vercel deploy --prod --yes 2>$null
 }
