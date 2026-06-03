@@ -1726,8 +1726,8 @@ function projCardHTML(p,dept){
   return `<div class="proj-card" data-id="${p.id}">
     <span class="proj-card-status">${stBadge(p)}</span>
     <div class="proj-card-svg">${svgStr}</div>
-    <div class="proj-card-name">${p.name}</div>
-    <div class="proj-card-contact">${p.contact}</div>
+    <div class="proj-card-contact" style="font-weight:700;color:var(--text)">${p.contact}</div>
+    ${p.pcs?`<div class="proj-card-contact">${p.pcs} pcs</div>`:''}
     ${deliveredRow}
     ${buildStrip(p,dept)}
   </div>`;
@@ -1832,11 +1832,11 @@ function renderApparelPreview(){
           const grp=list.filter(p=>p.status===status);
           if(!grp.length)return;
           html+=`<div style="grid-column:1/-1;display:flex;align-items:center;gap:8px;margin-top:4px;margin-bottom:2px"><span class="jst ${stColor(status)}" style="font-size:11px">${status}</span><div style="flex:1;height:.5px;background:var(--border)"></div></div>`;
-          html+=grp.map(p=>`<div class="proj-card" data-id="${p.id}" data-dept="${dept}"><span class="proj-card-status"><span class="jst ${stColor(p.status)}">${p.status}</span></span><div class="proj-card-svg">${getSvg(dept,p.colors,80,p.textVal,p.fontSize)}</div><div class="proj-card-name">${p.name}</div><div class="proj-card-contact">${p.contact}</div></div>`).join('');
+          html+=grp.map(p=>`<div class="proj-card" data-id="${p.id}" data-dept="${dept}"><span class="proj-card-status"><span class="jst ${stColor(p.status)}">${p.status}</span></span><div class="proj-card-svg">${getSvg(dept,p.colors,80,p.textVal,p.fontSize)}</div><div class="proj-card-contact" style="font-weight:700;color:var(--text)">${p.contact}</div>${p.pcs?`<div class="proj-card-contact">${p.pcs} pcs</div>`:''}</div>`).join('');
         });
         html+=`</div>`;
       } else {
-        html+=`<div class="proj-grid ap-dept-grid" data-dept="${dept}">${list.map(p=>`<div class="proj-card" data-id="${p.id}" data-dept="${dept}"><span class="proj-card-status"><span class="jst ${stColor(p.status)}">${p.status}</span></span><div class="proj-card-svg">${getSvg(dept,p.colors,80,p.textVal,p.fontSize)}</div><div class="proj-card-name">${p.name}</div><div class="proj-card-contact">${p.contact}</div></div>`).join('')}</div>`;
+        html+=`<div class="proj-grid ap-dept-grid" data-dept="${dept}">${list.map(p=>`<div class="proj-card" data-id="${p.id}" data-dept="${dept}"><span class="proj-card-status"><span class="jst ${stColor(p.status)}">${p.status}</span></span><div class="proj-card-svg">${getSvg(dept,p.colors,80,p.textVal,p.fontSize)}</div><div class="proj-card-contact" style="font-weight:700;color:var(--text)">${p.contact}</div>${p.pcs?`<div class="proj-card-contact">${p.pcs} pcs</div>`:''}</div>`).join('')}</div>`;
       }
     } else {
       if(apparelTab==='all'){
@@ -2140,7 +2140,6 @@ function renderFieldsRight(dept,cfg,proj,mode){
     const textInfo=(cfg.hasText&&proj.textVal)?`<div class="view-row"><label>Text / Name</label><div class="vv">${proj.textVal}</div></div>`:'';
     const svgPreviewStr=getSvg(dept,proj.colors,90,proj.textVal,proj.fontSize);
     const detailsHTML=`
-      <div class="view-row"><label>${cfg.nameLabel}</label><div class="vv"><strong>${proj.name}</strong></div></div>
       ${textInfo}
       <div class="view-row"><label>Person in Contact</label><div class="vv">${proj.contact}</div></div>
       <div class="view-row"><label>Contact Number</label><div class="vv">${proj.phone}</div></div>
