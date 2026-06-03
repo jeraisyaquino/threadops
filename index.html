@@ -648,6 +648,21 @@ body.staff-mode .admin-only{display:none!important;}
 .cal-up-sub{font-size:11px;color:var(--muted);margin-top:1px;}
 .cal-layout{display:flex;gap:14px;align-items:flex-start;}
 @media(max-width:768px){.cal-layout{flex-direction:column;}.cal-side-panel{width:100%!important;}}
+/* ── SALES ── */
+.sf-chip{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--border);background:var(--card);color:var(--muted);transition:all .15s;white-space:nowrap;}
+.sf-chip.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.sf-dept-chip{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1.5px solid var(--border);background:var(--card);color:var(--muted);display:flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap;}
+.sales-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:1.375rem;}
+.sales-kpi-card{background:var(--card);border-radius:var(--radius);padding:1.125rem 1.25rem;box-shadow:var(--shadow-sm);border:1px solid rgba(26,39,68,.05);}
+.sales-charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:1.375rem;}
+.sales-chart-box,.sales-chart-full{background:var(--card);border-radius:var(--radius);padding:1.25rem;box-shadow:var(--shadow-sm);border:1px solid rgba(26,39,68,.05);}
+.sales-chart-full{margin-bottom:1.375rem;}
+.sales-table{width:100%;border-collapse:collapse;font-size:13px;}
+.sales-table th{text-align:left;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px;padding:8px 12px;border-bottom:1px solid var(--border);}
+.sales-table td{padding:9px 12px;border-bottom:.5px solid var(--border);vertical-align:middle;}
+.sales-table tr:last-child td{border-bottom:none;}
+.sales-table tr:hover td{background:rgba(26,39,68,.025);}
+@media(max-width:768px){.sales-kpi{grid-template-columns:1fr 1fr;}.sales-charts{grid-template-columns:1fr;}}
 /* ── GANTT ── */
 .gantt-row{display:grid;grid-template-columns:160px 80px 1fr 80px;align-items:center;padding:8px 16px;border-bottom:.5px solid var(--border);gap:10px;cursor:pointer;}
 .gantt-row:hover{background:var(--bg);}
@@ -734,6 +749,7 @@ body.staff-mode .admin-only{display:none!important;}
       <div class="ni" onclick="showScreen('map',this)"><i class="ti ti-map"></i><span class="ni-label">Project Map</span></div>
       <div class="ni" onclick="showScreen('cal',this)"><i class="ti ti-calendar"></i><span class="ni-label">Calendar</span></div>
       <div class="ni" onclick="showScreen('chat',this)" id="nav-chat"><i class="ti ti-activity"></i><span class="ni-label">Activity</span></div>
+      <div class="ni admin-only" onclick="showScreen('sales',this)"><i class="ti ti-chart-bar"></i><span class="ni-label">Sales</span></div>
       <div class="sl">Departments</div>
       <div class="ni" onclick="showScreen('jersey',this)"><span class="ddot" style="background:#E85D26"></span><span class="ni-label dl-0">Jersey Sublimation</span></div>
       <div class="ni" onclick="showScreen('dress',this)"><span class="ddot" style="background:#9B59B6"></span><span class="ni-label dl-1">Custom Dress</span></div>
@@ -1017,6 +1033,22 @@ body.staff-mode .admin-only{display:none!important;}
         </div>
       </div>
 
+      <!-- SALES -->
+      <div class="screen admin-only" id="screen-sales">
+        <div class="ph"><div class="ph-left"><div class="pt">Sales Analytics</div><div class="ps">Revenue & order insights</div></div></div>
+        <div id="sales-filters" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:1.25rem"></div>
+        <div class="sales-kpi" id="sales-kpi"></div>
+        <div class="sales-charts">
+          <div class="sales-chart-box"><div class="stitle" style="margin-bottom:14px">Revenue by Department</div><canvas id="chart-dept"></canvas></div>
+          <div class="sales-chart-box"><div class="stitle" style="margin-bottom:14px">Order Status Mix</div><canvas id="chart-status"></canvas></div>
+        </div>
+        <div class="sales-chart-full"><div class="stitle" style="margin-bottom:14px">Monthly Revenue (12 months)</div><canvas id="chart-monthly"></canvas></div>
+        <div class="sales-chart-full" style="padding:0;overflow:hidden">
+          <div style="padding:14px 1.25rem;border-bottom:.5px solid var(--border);font-size:13px;font-weight:700;color:var(--text)">All Orders</div>
+          <div id="sales-table-wrap" style="overflow-x:auto"></div>
+        </div>
+      </div>
+
     </main>
   </div>
 </div>
@@ -1088,6 +1120,7 @@ body.staff-mode .admin-only{display:none!important;}
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <script>
 // ── Supabase ──
 const _SB_URL='https://tvcuibxqgppqxydjkuhp.supabase.co';
@@ -1215,7 +1248,7 @@ function dbToProject(row){
     projectedDateEnd:row.projected_date_end||'',deliveredDate:row.delivered_date||'',
     total:row.total||0,dp:row.dp||0,status:row.status||'In Queue',
     notes:row.notes||'',colors:row.colors||{},textVal:row.text_val||'',fontSize:row.font_size||7,
-    designFileUrl:row.design_file_url||null,pcs:row.pcs||null,jerseyType:row.jersey_type||null};
+    designFileUrl:row.design_file_url||null,pcs:row.pcs||null,jerseyType:row.jersey_type||null,createdAt:row.created_at||''};
 }
 function projectToDb(proj,dept){
   return{id:proj.id,dept,name:proj.name,contact:proj.contact||'',phone:proj.phone||'',
@@ -1255,7 +1288,7 @@ function rtRowToProject(row){
     status:row.status||'In Queue',notes:row.notes||'',
     colors:typeof row.colors==='string'?JSON.parse(row.colors):(row.colors||{}),
     textVal:row.text_val||'',fontSize:row.font_size||7,
-    pcs:row.pcs||null,jerseyType:row.jersey_type||null};
+    pcs:row.pcs||null,jerseyType:row.jersey_type||null,createdAt:row.created_at||''};
 }
 function setupChannels(){
   _projChannel=_rtSb.channel('rt-projects')
@@ -1287,6 +1320,7 @@ function refreshProjectViews(){
   renderDashboardStats();renderPaymentSummary();renderNeedsAttention();renderApparelPreview();renderAllDepts();renderArchive();
   if(document.getElementById('screen-map')?.classList.contains('active'))renderProjectMap();
   if(document.getElementById('screen-cal')?.classList.contains('active'))renderCalendar();
+  if(document.getElementById('screen-sales')?.classList.contains('active'))renderSales();
 }
 async function loadAllData(){
   try{
@@ -1394,6 +1428,7 @@ function showScreen(id,el){
   if(id==='settings')loadCapacityLimits();
   if(id==='map')renderProjectMap();
   if(id==='cal'){calYear=new Date().getFullYear();calMonth=new Date().getMonth();renderCalendar();}
+  if(id==='sales')renderSales();
   if(id==='chat'){
     renderFeedDeptList();renderFeedHeader();renderFeed();renderActChips();renderArchive();
     if(window.innerWidth<=768)switchActTab(activeActTab||'feed');
@@ -2760,6 +2795,83 @@ async function doBulkStatus(newStatus){
   }));
   clearBulk();refreshProjectViews();
   showToast(`${items.length} project${items.length>1?'s':''} → ${newStatus}`,{icon:'ti-circle-check',iconBg:'#E9F5EE',iconColor:'#2E8B57'});
+}
+
+// ══ SALES ══
+let salesRange='all',salesDept='all';
+let _chartDept=null,_chartStatus=null,_chartMonthly=null;
+const SALES_DEPT_COLOR={jersey:'#E85D26',dress:'#9B59B6',merch:'#F0A500',scrub:'#2E8B57'};
+const SALES_DEPT_NAME={jersey:'Jersey',dress:'Dress',merch:'Merch',scrub:'Scrub'};
+function salesGetFiltered(){
+  const now=new Date();
+  const list=[];
+  Object.entries(projects).forEach(([dept,arr])=>arr.forEach(p=>{
+    if(salesDept!=='all'&&dept!==salesDept)return;
+    if(salesRange!=='all'){
+      const dt=p.createdAt||p.dateEnd;if(!dt)return;
+      const d=new Date(dt);
+      if(salesRange==='week'){const cut=new Date(now);cut.setDate(cut.getDate()-7);if(d<cut)return;}
+      else if(salesRange==='month'){if(d.getFullYear()!==now.getFullYear()||d.getMonth()!==now.getMonth())return;}
+      else if(salesRange==='year'){if(d.getFullYear()!==now.getFullYear())return;}
+    }
+    list.push({...p,_dept:dept});
+  }));
+  return list;
+}
+function renderSales(){
+  renderSalesFilters();
+  renderSalesKPI();
+  renderSalesTable();
+  renderSalesCharts();
+}
+function renderSalesFilters(){
+  const el=document.getElementById('sales-filters');if(!el)return;
+  const ranges=[['all','All Time'],['year','This Year'],['month','This Month'],['week','This Week']];
+  const depts=[['all','All Depts',null],['jersey','Jersey','#E85D26'],['dress','Dress','#9B59B6'],['merch','Merch','#F0A500'],['scrub','Scrub','#2E8B57']];
+  el.innerHTML=`<div style="display:flex;gap:6px;flex-wrap:wrap">${ranges.map(([v,l])=>`<div class="sf-chip${salesRange===v?' active':''}" onclick="salesRange='${v}';renderSales()">${l}</div>`).join('')}</div><div style="width:1px;height:24px;background:var(--border);flex-shrink:0"></div><div style="display:flex;gap:6px;flex-wrap:wrap">${depts.map(([v,l,c])=>`<div class="sf-dept-chip${salesDept===v?' active':''}" style="${c&&salesDept===v?'border-color:'+c+';color:'+c:''}" onclick="salesDept='${v}';renderSales()">${c?`<span style="width:7px;height:7px;border-radius:50%;background:${c};display:inline-block;flex-shrink:0"></span>`:''} ${l}</div>`).join('')}</div>`;
+}
+function renderSalesKPI(){
+  const list=salesGetFiltered();
+  const revenue=list.reduce((s,p)=>s+(p.total||0),0);
+  const collected=list.reduce((s,p)=>s+(p.dp||0),0);
+  const outstanding=revenue-collected;
+  const priced=list.filter(p=>p.total>0);
+  const avg=priced.length?Math.round(revenue/priced.length):0;
+  const el=document.getElementById('sales-kpi');if(!el)return;
+  const card=(lbl,val,sub,col='var(--text)')=>`<div class="sales-kpi-card"><div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">${lbl}</div><div style="font-size:26px;font-weight:700;color:${col}">${val}</div><div style="font-size:11px;color:var(--muted);margin-top:4px">${sub}</div></div>`;
+  el.innerHTML=card('Total Revenue','₱'+revenue.toLocaleString(),list.length+' orders')+card('Collected','₱'+collected.toLocaleString(),(revenue>0?Math.round((collected/revenue)*100):0)+'% of total','#2E8B57')+card('Outstanding','₱'+outstanding.toLocaleString(),list.filter(p=>(p.total||0)>(p.dp||0)).length+' unpaid',outstanding>0?'#E85D26':'#2E8B57')+card('Avg Order Value','₱'+avg.toLocaleString(),priced.length+' priced orders');
+}
+function renderSalesCharts(){
+  if(!window.Chart)return;
+  const list=salesGetFiltered();
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const tc=isDark?'rgba(255,255,255,.6)':'rgba(0,0,0,.45)';
+  const gc=isDark?'rgba(255,255,255,.07)':'rgba(0,0,0,.06)';
+  const bc=isDark?'#1A2744':'#fff';
+  // Dept bar
+  const deptVals=['jersey','dress','merch','scrub'].map(d=>list.filter(p=>p._dept===d).reduce((s,p)=>s+(p.total||0),0));
+  if(_chartDept)_chartDept.destroy();
+  _chartDept=new Chart(document.getElementById('chart-dept'),{type:'bar',data:{labels:['Jersey','Dress','Merch','Scrub'],datasets:[{data:deptVals,backgroundColor:['#E85D26','#9B59B6','#F0A500','#2E8B57'],borderRadius:6,borderSkipped:false}]},options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'₱'+c.raw.toLocaleString()}}},scales:{x:{ticks:{color:tc,callback:v=>'₱'+v.toLocaleString()},grid:{color:gc}},y:{ticks:{color:tc},grid:{display:false}}}}});
+  // Status donut
+  const STS=['In Queue','On-going','Finishing','QC & Packed','Delivered'];
+  const STC=['#8B9CBF','#E85D26','#F0A500','#4B5EA6','#2E8B57'];
+  const statusVals=STS.map(s=>list.filter(p=>p.status===s).reduce((sum,p)=>sum+(p.total||0),0));
+  if(_chartStatus)_chartStatus.destroy();
+  _chartStatus=new Chart(document.getElementById('chart-status'),{type:'doughnut',data:{labels:STS,datasets:[{data:statusVals,backgroundColor:STC,borderWidth:2,borderColor:bc}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{color:tc,font:{size:11},padding:10,usePointStyle:true}},tooltip:{callbacks:{label:c=>c.label+': ₱'+c.raw.toLocaleString()}}},cutout:'62%'}});
+  // Monthly line (last 12 months, dept-filtered, not range-filtered)
+  const months=[];const mlbls=[];const now=new Date();
+  for(let i=11;i>=0;i--){const d=new Date(now.getFullYear(),now.getMonth()-i,1);months.push({y:d.getFullYear(),m:d.getMonth()});mlbls.push(d.toLocaleDateString('en-PH',{month:'short',year:'2-digit'}));}
+  const allForMonth=[];
+  Object.entries(projects).forEach(([dept,arr])=>arr.forEach(p=>{if(salesDept==='all'||dept===salesDept)allForMonth.push({...p,_dept:dept});}));
+  const mVals=months.map(({y,m})=>allForMonth.reduce((s,p)=>{const dt=p.deliveredDate||p.dateEnd;if(!dt)return s;const d=new Date(dt);return(d.getFullYear()===y&&d.getMonth()===m)?s+(p.total||0):s;},0));
+  if(_chartMonthly)_chartMonthly.destroy();
+  _chartMonthly=new Chart(document.getElementById('chart-monthly'),{type:'line',data:{labels:mlbls,datasets:[{label:'Revenue',data:mVals,borderColor:'#E85D26',backgroundColor:'rgba(232,93,38,.08)',fill:true,tension:.4,pointBackgroundColor:'#E85D26',pointRadius:4,pointHoverRadius:6,borderWidth:2.5}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>'₱'+c.raw.toLocaleString()}}},scales:{x:{ticks:{color:tc},grid:{display:false}},y:{ticks:{color:tc,callback:v=>'₱'+v.toLocaleString()},grid:{color:gc}}}}});
+}
+function renderSalesTable(){
+  const list=salesGetFiltered().filter(p=>p.total>0).sort((a,b)=>(b.total||0)-(a.total||0));
+  const el=document.getElementById('sales-table-wrap');if(!el)return;
+  if(!list.length){el.innerHTML='<div style="padding:2rem;text-align:center;color:var(--muted);font-size:14px">No priced orders for this filter.</div>';return;}
+  el.innerHTML=`<table class="sales-table"><thead><tr><th>Order</th><th>Contact</th><th>Dept</th><th>Status</th><th>Due Date</th><th>Order Total</th><th>Collected</th><th>Balance</th></tr></thead><tbody>${list.map(p=>`<tr style="cursor:pointer" onclick="openProjectModal('${p.id}','${p._dept}','view')"><td style="font-weight:600;color:var(--text)">${p.name}</td><td style="color:var(--muted);font-size:12px">${p.contact||'—'}</td><td><span style="font-size:11px;font-weight:600;color:${SALES_DEPT_COLOR[p._dept]}">${SALES_DEPT_NAME[p._dept]}</span></td><td><span class="jst ${stColor(p.status)}" style="font-size:10px">${p.status}</span></td><td style="color:var(--muted);font-size:12px">${p.dateEnd?fmtShortDate(p.dateEnd):'—'}</td><td style="font-weight:600">₱${(p.total||0).toLocaleString()}</td><td style="color:#2E8B57;font-weight:500">₱${(p.dp||0).toLocaleString()}</td><td style="font-weight:600;color:${Math.max(0,(p.total||0)-(p.dp||0))>0?'#E85D26':'#2E8B57'}">₱${Math.max(0,(p.total||0)-(p.dp||0)).toLocaleString()}</td></tr>`).join('')}</tbody></table>`;
 }
 </script>
 </body>
